@@ -4,12 +4,13 @@ import * as THREE from 'three';
 
 interface PlanetGLBModelProps {
   modelPath: string;
-  scaleFactor: number;
+  targetDiameter: number;
 }
 
-export const PlanetGLBModel: React.FC<PlanetGLBModelProps> = ({ modelPath, scaleFactor }) => {
+export const PlanetGLBModel: React.FC<PlanetGLBModelProps> = ({ modelPath, targetDiameter }) => {
   const { scene } = useGLTF(modelPath);
-  const cloned = useMemo(() => {
+
+  const { cloned, scale } = useMemo(() => {
     const c = scene.clone();
     c.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
@@ -18,13 +19,22 @@ export const PlanetGLBModel: React.FC<PlanetGLBModelProps> = ({ modelPath, scale
         mesh.receiveShadow = true;
       }
     });
-    return c;
-  }, [scene]);
+
+    // Compute exact world bounding box of the loaded GLTF model
+    const box = new THREE.Box3().setFromObject(c);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    const maxDimension = Math.max(size.x, size.y, size.z);
+
+    // Normalize to exact target diameter in AU
+    const computedScale = maxDimension > 0 ? targetDiameter / maxDimension : 1.0;
+    return { cloned: c, scale: computedScale };
+  }, [scene, targetDiameter]);
 
   return (
     <primitive
       object={cloned}
-      scale={[scaleFactor, scaleFactor, scaleFactor]}
+      scale={[scale, scale, scale]}
     />
   );
 };

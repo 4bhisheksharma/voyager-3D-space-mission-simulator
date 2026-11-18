@@ -26,21 +26,23 @@ export const PlanetMesh: React.FC<PlanetMeshProps> = ({ body, jd }) => {
     return getPlanetPositionAU(body.id, jd);
   }, [body.id, jd]);
 
-  // Target visual radius in AU for procedural fallback and focus indicators
-  const visualRadius = useMemo(() => {
+  // Target physical diameters in AU (carefully proportioned so inner planets don't crowd and outer planets aren't bloated)
+  const targetDiameter = useMemo(() => {
     switch (body.id) {
-      case 'sun': return 0.05;
-      case 'mercury': return 0.015;
+      case 'sun': return 0.08;      // Compact luminous star core
+      case 'mercury': return 0.016;  // Smallest inner planet
       case 'venus': return 0.024;
       case 'earth': return 0.026;
-      case 'mars': return 0.019;
-      case 'jupiter': return 0.068;
-      case 'saturn': return 0.058;
-      case 'uranus': return 0.040;
-      case 'neptune': return 0.040;
-      default: return 0.02;
+      case 'mars': return 0.020;
+      case 'jupiter': return 0.075;  // Majestic gas giant
+      case 'saturn': return 0.110;   // Planet + rings
+      case 'uranus': return 0.050;   // Ice giant
+      case 'neptune': return 0.045;  // Ice giant
+      default: return 0.03;
     }
   }, [body.id]);
+
+  const visualRadius = targetDiameter / 2.0;
 
   // In Optimization Mode: only Sun and Earth load 3D GLB models; other planets use fast procedural spheres
   const useGLB = useMemo(() => {
@@ -54,7 +56,7 @@ export const PlanetMesh: React.FC<PlanetMeshProps> = ({ body, jd }) => {
   const texture = useMemo(() => getPlanetTexture(body.textureType), [body.textureType]);
   const ringsTexture = useMemo(() => (body.hasRings ? getRingsTexture() : null), [body.hasRings]);
 
-  // Axial rotation
+  // Subtle axial rotation
   useFrame((_, delta) => {
     if (rotGroupRef.current) {
       rotGroupRef.current.rotation.y += delta * 0.1;
@@ -88,7 +90,7 @@ export const PlanetMesh: React.FC<PlanetMeshProps> = ({ body, jd }) => {
               >
                 <PlanetGLBModel
                   modelPath={body.modelPath}
-                  scaleFactor={body.modelScaleFactor}
+                  targetDiameter={targetDiameter}
                 />
               </Suspense>
             ) : (
@@ -98,8 +100,8 @@ export const PlanetMesh: React.FC<PlanetMeshProps> = ({ body, jd }) => {
               </mesh>
             )}
 
-            {/* Natural corona glow */}
-            <mesh scale={[1.25, 1.25, 1.25]}>
+            {/* Subtle solar corona */}
+            <mesh scale={[1.2, 1.2, 1.2]}>
               <sphereGeometry args={[visualRadius, 24, 24]} />
               <meshBasicMaterial
                 color="#f59e0b"
@@ -109,7 +111,7 @@ export const PlanetMesh: React.FC<PlanetMeshProps> = ({ body, jd }) => {
                 blending={THREE.AdditiveBlending}
               />
             </mesh>
-            <pointLight color="#fffaf0" intensity={3.5} distance={200} decay={0.6} />
+            <pointLight color="#fffaf0" intensity={3.0} distance={150} decay={0.6} />
           </group>
         ) : (
           // Planetary Bodies
@@ -125,7 +127,7 @@ export const PlanetMesh: React.FC<PlanetMeshProps> = ({ body, jd }) => {
               >
                 <PlanetGLBModel
                   modelPath={body.modelPath}
-                  scaleFactor={body.modelScaleFactor}
+                  targetDiameter={targetDiameter}
                 />
               </Suspense>
             ) : (
@@ -153,8 +155,8 @@ export const PlanetMesh: React.FC<PlanetMeshProps> = ({ body, jd }) => {
                   <mesh rotation={[Math.PI / 2, 0, 0]}>
                     <ringGeometry
                       args={[
-                        visualRadius * (body.ringInnerRadius || 1.3),
-                        visualRadius * (body.ringOuterRadius || 2.4),
+                        visualRadius * 1.3,
+                        visualRadius * 2.2,
                         64
                       ]}
                     />
@@ -172,7 +174,7 @@ export const PlanetMesh: React.FC<PlanetMeshProps> = ({ body, jd }) => {
             {/* Minimal selection ring */}
             {isSelected && (
               <mesh rotation={[-Math.PI / 2, 0, 0]}>
-                <ringGeometry args={[visualRadius * 1.4, visualRadius * 1.45, 32]} />
+                <ringGeometry args={[visualRadius * 1.3, visualRadius * 1.35, 32]} />
                 <meshBasicMaterial color="#38bdf8" side={THREE.DoubleSide} transparent opacity={0.7} />
               </mesh>
             )}
@@ -181,20 +183,17 @@ export const PlanetMesh: React.FC<PlanetMeshProps> = ({ body, jd }) => {
       </group>
 
       {/* 
-        CRITICAL FIX: 
-        Notice: distanceFactor is OMITTED. 
-        This keeps the label at a fixed, constant screen pixel size! 
-        It will NEVER scale up or blow up when the user zooms in!
-        Additionally, when the planet is selected/focused (cameraTarget === body.id),
-        we hide the label so it never blocks the 3D model!
+        Fixed screen-pixel label without distanceFactor:
+        Never blows up when zooming in! 
+        Hidden when focused on this body so it never obscures the 3D model.
       */}
       {showCelestialLabels && !isSelected && (
         <Html
-          position={[0, visualRadius + 0.04, 0]}
+          position={[0, visualRadius + 0.03, 0]}
           center
           style={{ pointerEvents: 'none', userSelect: 'none' }}
         >
-          <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-black/80 border border-white/10 text-[9px] font-mono tracking-wider text-slate-300 whitespace-nowrap">
+          <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-black/80 border border-white/10 text-[9px] font-mono tracking-wider text-zinc-300 whitespace-nowrap">
             <span
               className="w-1 h-1 rounded-full shrink-0"
               style={{ backgroundColor: body.color }}

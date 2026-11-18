@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import * as THREE from 'three';
 import { Html } from '@react-three/drei';
 import { SpacecraftId, TrajectoryPoint, MissionEvent } from '../../types/simulation';
@@ -21,12 +21,13 @@ export const TrajectoryPath: React.FC<TrajectoryPathProps> = ({
   events
 }) => {
   const { jumpToEvent, showEventMarkers, selectedEvent } = useSimulation();
+  const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
 
   const isV1 = id === 'voyager1';
-  const primaryColor = isV1 ? '#10b981' : '#f59e0b';
+  const primaryColor = isV1 ? '#34d399' : '#fbbf24';
   const faintColor = isV1 ? '#064e3b' : '#78350f';
 
-  // Full future/overall trajectory line (downsampled for fast rendering)
+  // Full future/overall trajectory line
   const fullGeometry = useMemo(() => {
     if (!visible || fullData.length === 0) return null;
     const pts: THREE.Vector3[] = [];
@@ -34,26 +35,24 @@ export const TrajectoryPath: React.FC<TrajectoryPathProps> = ({
     for (let i = 0; i < fullData.length; i += step) {
       pts.push(new THREE.Vector3(fullData[i].x, fullData[i].y, fullData[i].z));
     }
-    // Include the very last point
     const last = fullData[fullData.length - 1];
     pts.push(new THREE.Vector3(last.x, last.y, last.z));
     return new THREE.BufferGeometry().setFromPoints(pts);
   }, [visible, fullData]);
 
-  // Travelled path geometry (up to current simulation date)
+  // Travelled path geometry up to current date
   const travelledGeometry = useMemo(() => {
     if (!visible || travelledPath.length < 2) return null;
     const pts = travelledPath.map(p => new THREE.Vector3(p[0], p[1], p[2]));
     return new THREE.BufferGeometry().setFromPoints(pts);
   }, [visible, travelledPath]);
 
-  // Three.js Line objects to prevent JSX SVG conflicts
   const fullLine = useMemo(() => {
     if (!fullGeometry) return null;
     const mat = new THREE.LineBasicMaterial({
       color: faintColor,
       transparent: true,
-      opacity: 0.35,
+      opacity: 0.25,
       linewidth: 1
     });
     return new THREE.Line(fullGeometry, mat);
@@ -64,13 +63,13 @@ export const TrajectoryPath: React.FC<TrajectoryPathProps> = ({
     const mat = new THREE.LineBasicMaterial({
       color: primaryColor,
       transparent: true,
-      opacity: 0.9,
+      opacity: 0.85,
       linewidth: 2
     });
     return new THREE.Line(travelledGeometry, mat);
   }, [travelledGeometry, primaryColor]);
 
-  // Event marker 3D coordinates along this spacecraft's trajectory
+  // Event marker coordinates
   const spacecraftEvents = useMemo(() => {
     if (!visible || !showEventMarkers || fullData.length === 0) return [];
 
@@ -91,51 +90,60 @@ export const TrajectoryPath: React.FC<TrajectoryPathProps> = ({
 
   return (
     <group name={`trajectory-${id}`}>
-      {/* 1. Full historical trajectory line (faint guide) */}
+      {/* 1. Full trajectory line */}
       {fullLine && <primitive object={fullLine} />}
 
-      {/* 2. Progressively travelled path (bright glowing path) */}
+      {/* 2. Progressively travelled line */}
       {travelledLine && <primitive object={travelledLine} />}
 
       {/* 3. Event markers along trajectory */}
       {showEventMarkers &&
         spacecraftEvents.map(({ event, position }) => {
           const isSelected = selectedEvent?.id === event.id;
+          const isHovered = hoveredEventId === event.id;
+
           return (
-            <group key={event.id} position={position}>
-              {/* 3D Pin */}
+            <group
+              key={event.id}
+              position={position}
+              onPointerOver={(e) => { e.stopPropagation(); setHoveredEventId(event.id); }}
+              onPointerOut={() => setHoveredEventId(null)}
+            >
+              {/* Subtle 3D Pin */}
               <mesh
                 onClick={(e) => {
                   e.stopPropagation();
                   jumpToEvent(event);
                 }}
               >
-                <sphereGeometry args={[isSelected ? 0.03 : 0.016, 12, 12]} />
+                <sphereGeometry args={[isSelected ? 0.024 : 0.012, 12, 12]} />
                 <meshBasicMaterial
                   color={isSelected ? '#ffffff' : primaryColor}
                 />
               </mesh>
 
-              {/* Marker Label - fixed screen pixel size without zoom distortion */}
-              <Html
-                position={[0, 0.04, 0]}
-                center
-                style={{ pointerEvents: 'auto' }}
-              >
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    jumpToEvent(event);
-                  }}
-                  className={`px-1.5 py-0.5 rounded text-[9px] font-mono whitespace-nowrap transition-all cursor-pointer ${
-                    isSelected
-                      ? 'bg-white text-black font-semibold ring-1 ring-white'
-                      : 'bg-black/75 text-slate-300 hover:text-white border border-white/10 hover:border-white/30'
-                  }`}
+              {/* Marker Label ONLY shown on hover or when selected to prevent screen clutter */}
+              {(isHovered || isSelected) && (
+                <Html
+                  position={[0, 0.035, 0]}
+                  center
+                  style={{ pointerEvents: 'auto' }}
                 >
-                  <span>{event.short}</span>
-                </button>
-              </Html>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      jumpToEvent(event);
+                    }}
+                    className={`px-1.5 py-0.5 rounded text-[9px] font-mono whitespace-nowrap transition-all cursor-pointer shadow-md ${
+                      isSelected
+                        ? 'bg-white text-black font-semibold ring-1 ring-white'
+                        : 'bg-black/90 text-zinc-200 hover:text-white border border-white/20'
+                    }`}
+                  >
+                    <span>{event.short}</span>
+                  </button>
+                </Html>
+              )}
             </group>
           );
         })}
