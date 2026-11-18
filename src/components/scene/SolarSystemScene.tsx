@@ -2,7 +2,6 @@ import React, { useRef, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Stars } from '@react-three/drei';
 import { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
-import * as THREE from 'three';
 import { useSimulation } from '../../context/SimulationContext';
 import { unixMsToJulianDate } from '../../utils/astronomy';
 import { CELESTIAL_BODIES } from '../../utils/celestialBodies';
@@ -32,59 +31,60 @@ export const SolarSystemScene: React.FC = () => {
   const jd = useMemo(() => unixMsToJulianDate(currentTimeMs), [currentTimeMs]);
 
   return (
-    <div className="w-full h-full relative bg-[#020617] overflow-hidden">
+    <div className="w-full h-full relative bg-black overflow-hidden">
       <Canvas
-        camera={{ position: [0, 50, 75], fov: 45, near: 0.1, far: 5000 }}
+        camera={{ position: [0, 35, 55], fov: 42, near: 0.005, far: 3000 }}
         gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
       >
-        <color attach="background" args={['#020617']} />
+        <color attach="background" args={['#010308']} />
 
-        {/* Ambient lighting for space visibility */}
-        <ambientLight intensity={0.25} />
+        {/* Ambient & Hemisphere Lighting for clean PBR material rendering */}
+        <ambientLight intensity={0.5} />
+        <hemisphereLight args={['#1e293b', '#020617', 0.4]} />
 
         {/* Orbit Controls */}
         <OrbitControls
           ref={controlsRef}
           enableDamping
-          dampingFactor={0.06}
-          minDistance={0.5}
-          maxDistance={1200}
+          dampingFactor={0.07}
+          minDistance={0.02}
+          maxDistance={800}
           zoomSpeed={1.2}
-          rotateSpeed={0.8}
+          rotateSpeed={0.7}
         />
 
         {/* Camera lerp controller */}
         <CameraController controlsRef={controlsRef} jd={jd} />
 
-        {/* Deep space starfield */}
+        {/* Starfield */}
         <Stars
-          radius={500}
-          depth={150}
-          count={7000}
-          factor={4}
-          saturation={0.5}
+          radius={400}
+          depth={100}
+          count={5000}
+          factor={3}
+          saturation={0.2}
           fade
-          speed={0.5}
+          speed={0.2}
         />
 
-        {/* Ecliptic Plane Grid (subtle cosmic reference) */}
+        {/* Subtle Ecliptic Reference Plane */}
         <gridHelper
-          args={[300, 60, '#1e293b', '#0f172a']}
-          position={[0, -0.01, 0]}
+          args={[200, 50, '#1e293b', '#0b1120']}
+          position={[0, -0.005, 0]}
         />
 
-        {/* Concentric Distance Rings & Heliosphere Boundary Shells */}
+        {/* Distance Rings & Boundaries */}
         <HeliosphereBoundaries />
 
-        {/* Planetary Orbits (ellipses) */}
+        {/* Planetary Orbits */}
         <PlanetaryOrbits jd={jd} />
 
-        {/* Sun and Planets */}
+        {/* Sun & Planets */}
         {CELESTIAL_BODIES.map(body => (
           <PlanetMesh key={body.id} body={body} jd={jd} />
         ))}
 
-        {/* Voyager 1 & 2 Trajectories */}
+        {/* Voyager Trajectories */}
         <TrajectoryPath
           id="voyager1"
           fullData={voyager1Data}
@@ -101,7 +101,7 @@ export const SolarSystemScene: React.FC = () => {
           events={events}
         />
 
-        {/* Voyager Spacecraft 3D Models */}
+        {/* Voyager 3D Spacecraft Models */}
         {showVoyager1Trajectory && (
           <VoyagerCraft
             id="voyager1"
@@ -121,4 +121,3 @@ export const SolarSystemScene: React.FC = () => {
     </div>
   );
 };
-

@@ -13,29 +13,30 @@ interface VoyagerCraftProps {
 
 export const VoyagerCraft: React.FC<VoyagerCraftProps> = ({ id, point, isSelected }) => {
   const groupRef = useRef<THREE.Group>(null);
-  const beaconRef = useRef<THREE.Mesh>(null);
   const { setSelectedSpacecraft, setCameraTarget, setIsFollowingSpacecraft, showCelestialLabels } = useSimulation();
 
-  // Load NASA 3D model
+  // Load NASA VTAD 3D model
   const { scene } = useGLTF('/models/voyager.glb');
-  const clonedScene = useMemo(() => scene.clone(), [scene]);
+  const clonedScene = useMemo(() => {
+    const clone = scene.clone();
+    // Enable shadows and ensure materials react to lighting
+    clone.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        const mesh = child as THREE.Mesh;
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+      }
+    });
+    return clone;
+  }, [scene]);
 
   const isV1 = id === 'voyager1';
   const name = isV1 ? 'Voyager 1' : 'Voyager 2';
-  const primaryColor = isV1 ? '#10b981' : '#f59e0b';
-  const secondaryColor = isV1 ? '#00f5d4' : '#ffbe0b';
+  const accentColor = isV1 ? '#34d399' : '#fbbf24';
 
-  // Orientation: align high-gain dish back towards Earth / Sun origin
-  useFrame(({ clock }, delta) => {
+  // Orient high-gain antenna back towards Earth/Sun (origin [0,0,0])
+  useFrame(() => {
     if (!groupRef.current || !point) return;
-
-    // Pulse the beacon locator
-    if (beaconRef.current) {
-      const s = 1.0 + 0.25 * Math.sin(clock.getElapsedTime() * 4.0);
-      beaconRef.current.scale.set(s, s, s);
-    }
-
-    // Orient dish towards origin [0,0,0] where Earth/Sun is
     groupRef.current.lookAt(0, 0, 0);
   });
 
@@ -50,76 +51,50 @@ export const VoyagerCraft: React.FC<VoyagerCraftProps> = ({ id, point, isSelecte
 
   return (
     <group ref={groupRef} position={[point.x, point.y, point.z]}>
-      {/* Clickable hit area and locator beacon */}
-      <group onClick={handleClick}>
-        {/* Detailed NASA 3D Model */}
-        {/* Scale model to be visible yet proportionate */}
+      {/* Spacecraft fill lighting to ensure PBR materials are clearly visible in deep space */}
+      <pointLight color="#ffffff" intensity={1.5} distance={2} decay={1} />
+
+      {/* 3D Spacecraft Model - completely unobstructed (no spheres covering it!) */}
+      <group onClick={handleClick} className="cursor-pointer">
         <primitive
           object={clonedScene}
-          scale={[0.08, 0.08, 0.08]}
+          scale={[0.015, 0.015, 0.015]}
           rotation={[0, Math.PI, 0]}
         />
 
-        {/* Pulsing Locator Beacon for deep space visibility */}
-        <mesh ref={beaconRef}>
-          <sphereGeometry args={[0.18, 16, 16]} />
-          <meshBasicMaterial
-            color={primaryColor}
-            transparent
-            opacity={0.35}
-            blending={THREE.AdditiveBlending}
-          />
-        </mesh>
-
-        {/* Inner core dot */}
-        <mesh>
-          <sphereGeometry args={[0.06, 12, 12]} />
-          <meshBasicMaterial color={secondaryColor} />
-        </mesh>
-
-        {/* Target Reticle when selected */}
+        {/* Minimal targeting ring visible only when selected */}
         {isSelected && (
-          <group>
-            <mesh rotation={[-Math.PI / 2, 0, 0]}>
-              <ringGeometry args={[0.45, 0.48, 32]} />
-              <meshBasicMaterial color={secondaryColor} side={THREE.DoubleSide} transparent opacity={0.85} />
-            </mesh>
-            <mesh rotation={[-Math.PI / 2, 0, 0]}>
-              <ringGeometry args={[0.65, 0.67, 4]} />
-              <meshBasicMaterial color={primaryColor} side={THREE.DoubleSide} transparent opacity={0.6} />
-            </mesh>
-          </group>
+          <mesh rotation={[-Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[0.08, 0.085, 32]} />
+            <meshBasicMaterial color={accentColor} side={THREE.DoubleSide} transparent opacity={0.6} />
+          </mesh>
         )}
       </group>
 
-      {/* Real-time HTML HUD label */}
+      {/* Sleek, Minimal Monospace HUD Tag */}
       {showCelestialLabels && (
         <Html
-          position={[0, 0.5, 0]}
+          position={[0, 0.1, 0]}
           center
-          distanceFactor={30}
+          distanceFactor={18}
           style={{ pointerEvents: 'none', userSelect: 'none' }}
         >
           <div
             onClick={handleClick}
-            className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded backdrop-blur-md border shadow-lg transition-all ${
+            className={`flex items-center gap-1.5 px-2 py-0.5 rounded backdrop-blur-xs border transition-all pointer-events-auto cursor-pointer ${
               isSelected
-                ? 'bg-slate-900/90 border-emerald-400/80 shadow-emerald-500/20'
-                : 'bg-slate-950/80 border-slate-700/60'
+                ? 'bg-black/90 border-white/30 text-white shadow-sm'
+                : 'bg-black/75 border-white/10 text-slate-300 hover:border-white/20'
             }`}
           >
-            <div className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wider font-mono">
-              <span
-                className="w-2 h-2 rounded-full animate-ping"
-                style={{ backgroundColor: primaryColor }}
-              />
-              <span style={{ color: primaryColor }}>{name.toUpperCase()}</span>
-            </div>
-            <div className="flex items-center gap-2 text-[9px] font-mono text-slate-300">
-              <span>{point.dist.toFixed(1)} AU</span>
-              <span className="text-slate-500">|</span>
-              <span>{point.speed.toFixed(1)} km/s</span>
-            </div>
+            <span
+              className="w-1.5 h-1.5 rounded-full"
+              style={{ backgroundColor: accentColor }}
+            />
+            <span className="text-[10px] font-mono tracking-wider uppercase font-medium">{name}</span>
+            <span className="text-[9px] font-mono text-slate-400">
+              {point.dist.toFixed(1)} AU
+            </span>
           </div>
         </Html>
       )}

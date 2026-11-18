@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
 import { 
-  Compass, 
-  Layers, 
   RotateCcw, 
   Disc, 
-  Eye, 
-  SlidersHorizontal,
-  ChevronDown,
-  Info
+  Layers, 
+  Info,
+  ChevronDown
 } from 'lucide-react';
 import { useSimulation } from '../../context/SimulationContext';
 import { CameraFocusTarget } from '../../types/simulation';
@@ -23,10 +20,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
     setSelectedSpacecraft,
     cameraTarget,
     setCameraTarget,
-    isFollowingSpacecraft,
     setIsFollowingSpacecraft,
-    scaleMode,
-    setScaleMode,
     v1Current,
     v2Current,
     showVoyager1Trajectory,
@@ -43,150 +37,110 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
     toggleCelestialLabels
   } = useSimulation();
 
-  const [showLayersDropdown, setShowLayersDropdown] = useState(false);
-  const [showCameraDropdown, setShowCameraDropdown] = useState(false);
+  const [showLayers, setShowLayers] = useState(false);
 
-  const cameraOptions: { id: CameraFocusTarget; label: string; group: string }[] = [
-    { id: 'overview', label: 'Full Solar System', group: 'System' },
-    { id: 'inner_solar_system', label: 'Inner Solar System', group: 'System' },
-    { id: 'voyager1', label: 'Voyager 1 Spacecraft', group: 'Probes' },
-    { id: 'voyager2', label: 'Voyager 2 Spacecraft', group: 'Probes' },
-    { id: 'sun', label: 'The Sun', group: 'Celestial' },
-    { id: 'earth', label: 'Earth (Cradle)', group: 'Celestial' },
-    { id: 'jupiter', label: 'Jupiter', group: 'Celestial' },
-    { id: 'saturn', label: 'Saturn', group: 'Celestial' },
-    { id: 'uranus', label: 'Uranus', group: 'Celestial' },
-    { id: 'neptune', label: 'Neptune', group: 'Celestial' }
+  const targets: { id: CameraFocusTarget; label: string }[] = [
+    { id: 'overview', label: 'Solar System' },
+    { id: 'inner_solar_system', label: 'Inner Planets' },
+    { id: 'voyager1', label: 'Voyager 1' },
+    { id: 'voyager2', label: 'Voyager 2' },
+    { id: 'jupiter', label: 'Jupiter' },
+    { id: 'saturn', label: 'Saturn' }
   ];
 
+  const handleSelectSpacecraft = (id: 'voyager1' | 'voyager2') => {
+    setSelectedSpacecraft(id);
+    setCameraTarget(id);
+    setIsFollowingSpacecraft(true);
+  };
+
   return (
-    <header className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 py-2.5 bg-slate-950/85 backdrop-blur-md border-b border-slate-800/80 shadow-2xl">
-      {/* Left: Mission Brand and Patch */}
-      <div className="flex items-center gap-3">
-        <div className="relative group flex items-center gap-2.5 cursor-pointer" onClick={() => setCameraTarget('overview')}>
-          <img
-            src="/image00.png"
-            alt="Voyager Mission Patch"
-            className="w-9 h-9 object-contain drop-shadow-[0_0_8px_rgba(59,130,246,0.5)] group-hover:scale-105 transition-transform"
-          />
-          <div className="flex flex-col">
-            <span className="text-xs font-bold uppercase tracking-widest text-slate-100 flex items-center gap-1.5">
-              NASA VOYAGER <span className="text-[10px] px-1.5 py-0.2 rounded bg-sky-500/20 text-sky-400 border border-sky-500/30 font-mono">SIMULATOR</span>
-            </span>
-            <span className="text-[10px] font-mono text-slate-400">Interstellar Space Exploration</span>
-          </div>
+    <header className="absolute top-0 inset-x-0 z-20 h-12 px-4 flex items-center justify-between bg-black/60 backdrop-blur-md border-b border-white/10 select-none">
+      {/* Left: Brand & Probe Switcher */}
+      <div className="flex items-center gap-4">
+        <div
+          onClick={() => { setCameraTarget('overview'); setIsFollowingSpacecraft(false); }}
+          className="flex items-center gap-2 cursor-pointer opacity-90 hover:opacity-100 transition-opacity"
+        >
+          <img src="/image00.png" alt="Voyager Patch" className="w-6 h-6 object-contain" />
+          <span className="text-xs font-mono font-semibold tracking-widest text-slate-200 uppercase">
+            Voyager Mission Simulator
+          </span>
         </div>
 
-        {/* Spacecraft Selection Tabs */}
-        <div className="hidden sm:flex items-center gap-1 ml-4 p-1 rounded-lg bg-slate-900/90 border border-slate-800">
+        {/* Minimal Probe Pills */}
+        <div className="flex items-center bg-white/5 p-0.5 rounded border border-white/10 text-xs font-mono">
           <button
-            onClick={() => {
-              setSelectedSpacecraft('voyager1');
-              setCameraTarget('voyager1');
-              setIsFollowingSpacecraft(true);
-            }}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-mono transition-all cursor-pointer ${
+            onClick={() => handleSelectSpacecraft('voyager1')}
+            className={`px-2.5 py-1 rounded transition-colors cursor-pointer flex items-center gap-1.5 ${
               selectedSpacecraft === 'voyager1'
-                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-xs shadow-emerald-500/20 font-semibold'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                ? 'bg-emerald-500/20 text-emerald-300 font-medium border border-emerald-500/30'
+                : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#10b981]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
             <span>VOYAGER 1</span>
-            {v1Current && (
-              <span className="text-[10px] text-emerald-300/80 bg-emerald-950/60 px-1 py-0.2 rounded">
-                {v1Current.dist.toFixed(1)} AU
-              </span>
-            )}
+            {v1Current && <span className="opacity-60 text-[10px]">{v1Current.dist.toFixed(0)} AU</span>}
           </button>
 
           <button
-            onClick={() => {
-              setSelectedSpacecraft('voyager2');
-              setCameraTarget('voyager2');
-              setIsFollowingSpacecraft(true);
-            }}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-mono transition-all cursor-pointer ${
+            onClick={() => handleSelectSpacecraft('voyager2')}
+            className={`px-2.5 py-1 rounded transition-colors cursor-pointer flex items-center gap-1.5 ${
               selectedSpacecraft === 'voyager2'
-                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40 shadow-xs shadow-amber-500/20 font-semibold'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                ? 'bg-amber-500/20 text-amber-300 font-medium border border-amber-500/30'
+                : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_6px_#f59e0b]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
             <span>VOYAGER 2</span>
-            {v2Current && (
-              <span className="text-[10px] text-amber-300/80 bg-amber-950/60 px-1 py-0.2 rounded">
-                {v2Current.dist.toFixed(1)} AU
-              </span>
-            )}
+            {v2Current && <span className="opacity-60 text-[10px]">{v2Current.dist.toFixed(0)} AU</span>}
           </button>
         </div>
       </div>
 
-      {/* Right Controls: Camera targets, Layers, Scale, Golden Record */}
-      <div className="flex items-center gap-2">
-        {/* Camera Target Selector */}
-        <div className="relative">
+      {/* Center: Camera Target Presets */}
+      <nav className="hidden md:flex items-center gap-1 font-mono text-xs">
+        {targets.map(t => (
           <button
-            onClick={() => setShowCameraDropdown(!showCameraDropdown)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-slate-900 border border-slate-800 text-xs font-mono text-slate-300 hover:bg-slate-800 transition-colors cursor-pointer"
+            key={t.id}
+            onClick={() => {
+              setCameraTarget(t.id);
+              if (t.id === 'voyager1' || t.id === 'voyager2') {
+                setSelectedSpacecraft(t.id);
+                setIsFollowingSpacecraft(true);
+              } else {
+                setIsFollowingSpacecraft(false);
+              }
+            }}
+            className={`px-2.5 py-1 rounded transition-colors cursor-pointer ${
+              cameraTarget === t.id
+                ? 'text-white bg-white/10 font-medium'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+            }`}
           >
-            <Compass className="w-3.5 h-3.5 text-sky-400" />
-            <span className="hidden md:inline capitalize">{cameraTarget.replace('_', ' ')}</span>
-            <ChevronDown className="w-3 h-3 text-slate-400" />
+            {t.label}
           </button>
+        ))}
+      </nav>
 
-          {showCameraDropdown && (
-            <div className="absolute right-0 mt-1.5 w-48 py-1.5 rounded-lg bg-slate-900 border border-slate-700 shadow-xl backdrop-blur-md z-30">
-              <div className="px-3 py-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider font-mono">
-                Camera Target
-              </div>
-              {cameraOptions.map(opt => (
-                <button
-                  key={opt.id}
-                  onClick={() => {
-                    setCameraTarget(opt.id);
-                    if (opt.id === 'voyager1' || opt.id === 'voyager2') {
-                      setIsFollowingSpacecraft(true);
-                      setSelectedSpacecraft(opt.id);
-                    } else {
-                      setIsFollowingSpacecraft(false);
-                    }
-                    setShowCameraDropdown(false);
-                  }}
-                  className={`w-full text-left px-3 py-1.5 text-xs font-mono transition-colors flex items-center justify-between cursor-pointer ${
-                    cameraTarget === opt.id
-                      ? 'bg-sky-500/20 text-sky-300 font-semibold'
-                      : 'text-slate-300 hover:bg-slate-800'
-                  }`}
-                >
-                  <span>{opt.label}</span>
-                  {cameraTarget === opt.id && <Eye className="w-3 h-3 text-sky-400" />}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Visual Layers Toggle */}
+      {/* Right: Actions */}
+      <div className="flex items-center gap-2">
+        {/* Overlays toggle */}
         <div className="relative">
           <button
-            onClick={() => setShowLayersDropdown(!showLayersDropdown)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-slate-900 border border-slate-800 text-xs font-mono text-slate-300 hover:bg-slate-800 transition-colors cursor-pointer"
-            title="Toggle Visual Overlays"
+            onClick={() => setShowLayers(!showLayers)}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono text-slate-300 transition-colors cursor-pointer"
+            title="Display Overlays"
           >
             <Layers className="w-3.5 h-3.5 text-slate-400" />
-            <span className="hidden lg:inline">Overlays</span>
+            <span className="hidden sm:inline">Layers</span>
             <ChevronDown className="w-3 h-3 text-slate-400" />
           </button>
 
-          {showLayersDropdown && (
-            <div className="absolute right-0 mt-1.5 w-56 p-2 rounded-lg bg-slate-900 border border-slate-700 shadow-xl backdrop-blur-md z-30 text-xs font-mono space-y-1.5">
-              <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-1">
-                Display Overlays
-              </div>
-              <label className="flex items-center justify-between p-1.5 rounded hover:bg-slate-800 cursor-pointer">
-                <span className="text-emerald-400">Voyager 1 Path</span>
+          {showLayers && (
+            <div className="absolute right-0 mt-2 w-52 p-2 rounded-lg bg-slate-950/95 border border-white/10 shadow-2xl backdrop-blur-md z-30 font-mono text-xs space-y-1">
+              <label className="flex items-center justify-between p-1.5 rounded hover:bg-white/5 cursor-pointer text-slate-300">
+                <span>Voyager 1 Path</span>
                 <input
                   type="checkbox"
                   checked={showVoyager1Trajectory}
@@ -194,8 +148,8 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
                   className="rounded accent-emerald-500"
                 />
               </label>
-              <label className="flex items-center justify-between p-1.5 rounded hover:bg-slate-800 cursor-pointer">
-                <span className="text-amber-400">Voyager 2 Path</span>
+              <label className="flex items-center justify-between p-1.5 rounded hover:bg-white/5 cursor-pointer text-slate-300">
+                <span>Voyager 2 Path</span>
                 <input
                   type="checkbox"
                   checked={showVoyager2Trajectory}
@@ -203,8 +157,8 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
                   className="rounded accent-amber-500"
                 />
               </label>
-              <label className="flex items-center justify-between p-1.5 rounded hover:bg-slate-800 cursor-pointer">
-                <span className="text-slate-300">Planetary Orbits</span>
+              <label className="flex items-center justify-between p-1.5 rounded hover:bg-white/5 cursor-pointer text-slate-300">
+                <span>Planetary Orbits</span>
                 <input
                   type="checkbox"
                   checked={showPlanetaryOrbits}
@@ -212,8 +166,8 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
                   className="rounded accent-sky-500"
                 />
               </label>
-              <label className="flex items-center justify-between p-1.5 rounded hover:bg-slate-800 cursor-pointer">
-                <span className="text-slate-300">Heliosphere Boundaries</span>
+              <label className="flex items-center justify-between p-1.5 rounded hover:bg-white/5 cursor-pointer text-slate-300">
+                <span>Heliosphere Shells</span>
                 <input
                   type="checkbox"
                   checked={showHeliosphereBoundaries}
@@ -221,8 +175,8 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
                   className="rounded accent-rose-500"
                 />
               </label>
-              <label className="flex items-center justify-between p-1.5 rounded hover:bg-slate-800 cursor-pointer">
-                <span className="text-slate-300">Milestone Pins</span>
+              <label className="flex items-center justify-between p-1.5 rounded hover:bg-white/5 cursor-pointer text-slate-300">
+                <span>Milestone Pins</span>
                 <input
                   type="checkbox"
                   checked={showEventMarkers}
@@ -230,8 +184,8 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
                   className="rounded accent-sky-500"
                 />
               </label>
-              <label className="flex items-center justify-between p-1.5 rounded hover:bg-slate-800 cursor-pointer">
-                <span className="text-slate-300">Celestial Labels</span>
+              <label className="flex items-center justify-between p-1.5 rounded hover:bg-white/5 cursor-pointer text-slate-300">
+                <span>Celestial Labels</span>
                 <input
                   type="checkbox"
                   checked={showCelestialLabels}
@@ -243,43 +197,33 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
           )}
         </div>
 
-        {/* Scale Mode Switch */}
-        <button
-          onClick={() => setScaleMode(scaleMode === 'enhanced' ? 'astronomical' : 'enhanced')}
-          className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-slate-900 border border-slate-800 text-xs font-mono text-slate-300 hover:bg-slate-800 transition-colors cursor-pointer"
-          title="Toggle between enhanced visual sizing and true astronomical scale"
-        >
-          <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400" />
-          <span className="text-[11px] capitalize">Scale: {scaleMode}</span>
-        </button>
-
-        {/* Golden Record Button */}
+        {/* Golden Record button */}
         <button
           onClick={onOpenGoldenRecord}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20 text-xs font-mono transition-colors cursor-pointer shadow-xs shadow-amber-500/20"
-          title="Explore the Golden Record"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-mono transition-colors cursor-pointer"
+          title="The Golden Record"
         >
-          <Disc className="w-3.5 h-3.5 text-amber-400 animate-spin" style={{ animationDuration: '8s' }} />
+          <Disc className="w-3.5 h-3.5 text-amber-400" />
           <span className="hidden sm:inline">Golden Record</span>
         </button>
 
-        {/* Reset Camera Button */}
+        {/* Reset Camera */}
         <button
           onClick={() => {
             setCameraTarget('overview');
             setIsFollowingSpacecraft(false);
           }}
-          className="p-1.5 rounded-md bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors cursor-pointer"
-          title="Reset Camera to Overview"
+          className="p-1.5 rounded bg-white/5 hover:bg-white/10 border border-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+          title="Reset Camera"
         >
           <RotateCcw className="w-3.5 h-3.5" />
         </button>
 
-        {/* Project Mission Info */}
+        {/* Science Info */}
         <button
           onClick={onOpenInfo}
-          className="p-1.5 rounded-md bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors cursor-pointer"
-          title="Project Dataset & Architecture Info"
+          className="p-1.5 rounded bg-white/5 hover:bg-white/10 border border-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+          title="Documentation & Scientific Grounding"
         >
           <Info className="w-3.5 h-3.5" />
         </button>
@@ -287,4 +231,3 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
     </header>
   );
 };
-
