@@ -245,3 +245,4 @@ export function getRingsTexture(): THREE.CanvasTexture {
   textureCache['rings'] = texture;
   return texture;
 }
+

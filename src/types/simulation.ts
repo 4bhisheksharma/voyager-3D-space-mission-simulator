@@ -78,3 +78,4 @@ export interface SimulationState {
   // Active Event
   selectedEvent: MissionEvent | null;
 }
+

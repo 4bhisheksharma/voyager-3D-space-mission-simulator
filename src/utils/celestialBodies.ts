@@ -164,3 +164,4 @@ export const HELIOSPHERE_REGIONS: RegionBoundary[] = [
     description: 'True interstellar space beyond the influence of the Sun’s plasma. Both probes are now actively traversing this realm.'
   }
 ];
+

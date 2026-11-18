@@ -166,3 +166,4 @@ export const PlanetMesh: React.FC<PlanetMeshProps> = ({ body, jd }) => {
     </group>
   );
 };
+

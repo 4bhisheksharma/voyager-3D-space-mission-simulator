@@ -287,3 +287,4 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
     </header>
   );
 };
+

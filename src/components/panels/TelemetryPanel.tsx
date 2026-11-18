@@ -306,3 +306,4 @@ export const TelemetryPanel: React.FC<{ isOpen: boolean; onToggle: () => void }>
     </aside>
   );
 };
+

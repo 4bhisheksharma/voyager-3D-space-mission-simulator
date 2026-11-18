@@ -190,3 +190,4 @@ export const MilestonesPanel: React.FC<{ isOpen: boolean; onToggle: () => void }
     </aside>
   );
 };
+

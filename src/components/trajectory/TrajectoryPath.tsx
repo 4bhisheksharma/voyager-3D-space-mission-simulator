@@ -47,6 +47,29 @@ export const TrajectoryPath: React.FC<TrajectoryPathProps> = ({
     return new THREE.BufferGeometry().setFromPoints(pts);
   }, [visible, travelledPath]);
 
+  // Three.js Line objects to prevent JSX SVG conflicts
+  const fullLine = useMemo(() => {
+    if (!fullGeometry) return null;
+    const mat = new THREE.LineBasicMaterial({
+      color: faintColor,
+      transparent: true,
+      opacity: 0.35,
+      linewidth: 1
+    });
+    return new THREE.Line(fullGeometry, mat);
+  }, [fullGeometry, faintColor]);
+
+  const travelledLine = useMemo(() => {
+    if (!travelledGeometry) return null;
+    const mat = new THREE.LineBasicMaterial({
+      color: primaryColor,
+      transparent: true,
+      opacity: 0.9,
+      linewidth: 2
+    });
+    return new THREE.Line(travelledGeometry, mat);
+  }, [travelledGeometry, primaryColor]);
+
   // Event marker 3D coordinates along this spacecraft's trajectory
   const spacecraftEvents = useMemo(() => {
     if (!visible || !showEventMarkers || fullData.length === 0) return [];
@@ -69,31 +92,10 @@ export const TrajectoryPath: React.FC<TrajectoryPathProps> = ({
   return (
     <group name={`trajectory-${id}`}>
       {/* 1. Full historical trajectory line (faint guide) */}
-      {fullGeometry && (
-        <line geometry={fullGeometry}>
-          <lineBasicMaterial
-            color={faintColor}
-            transparent
-            opacity={0.35}
-            linewidth={1}
-          />
-        </line>
-      )}
+      {fullLine && <primitive object={fullLine} />}
 
       {/* 2. Progressively travelled path (bright glowing path) */}
-      {travelledGeometry && (
-        <group>
-          {/* Main glowing line */}
-          <line geometry={travelledGeometry}>
-            <lineBasicMaterial
-              color={primaryColor}
-              transparent
-              opacity={0.9}
-              linewidth={2}
-            />
-          </line>
-        </group>
-      )}
+      {travelledLine && <primitive object={travelledLine} />}
 
       {/* 3. Event markers along trajectory */}
       {showEventMarkers &&
@@ -107,7 +109,6 @@ export const TrajectoryPath: React.FC<TrajectoryPathProps> = ({
                   e.stopPropagation();
                   jumpToEvent(event);
                 }}
-                className="cursor-pointer"
               >
                 <sphereGeometry args={[isSelected ? 0.35 : 0.22, 16, 16]} />
                 <meshBasicMaterial

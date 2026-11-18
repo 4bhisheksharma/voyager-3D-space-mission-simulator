@@ -51,7 +51,7 @@ export const VoyagerCraft: React.FC<VoyagerCraftProps> = ({ id, point, isSelecte
   return (
     <group ref={groupRef} position={[point.x, point.y, point.z]}>
       {/* Clickable hit area and locator beacon */}
-      <group onClick={handleClick} className="cursor-pointer">
+      <group onClick={handleClick}>
         {/* Detailed NASA 3D Model */}
         {/* Scale model to be visible yet proportionate */}
         <primitive

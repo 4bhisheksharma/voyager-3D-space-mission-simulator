@@ -276,3 +276,4 @@ export const PlaybackControls: React.FC = () => {
     </footer>
   );
 };
+
