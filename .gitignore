@@ -1,5 +1,26 @@
-models
-node_modules
-dataset.json
-satellite-voyagers.json
-orbit
+# Node dependencies
+node_modules/
+
+# Production build
+dist/
+dist-ssr/
+
+# System and editor files
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.idea/
+.vscode/
+
+# Local logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Explicitly ensure public assets are tracked for deployment
+!public/
+!public/**

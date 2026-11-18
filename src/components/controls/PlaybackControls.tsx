@@ -80,10 +80,10 @@ export const PlaybackControls: React.FC = () => {
   };
 
   return (
-    <footer className="absolute bottom-0 inset-x-0 z-20 px-6 py-3 bg-black/70 backdrop-blur-md border-t border-white/10 select-none">
-      <div className="max-w-6xl mx-auto flex flex-col gap-2">
+    <footer className="absolute bottom-0 inset-x-0 z-20 px-3 sm:px-6 py-2 sm:py-3 bg-black/80 backdrop-blur-md border-t border-white/10 select-none">
+      <div className="max-w-6xl mx-auto flex flex-col gap-1.5 sm:gap-2">
         {/* Timeline Scrubber */}
-        <div className="relative w-full flex items-center group py-1">
+        <div className="relative w-full flex items-center group py-0.5 sm:py-1">
           <input
             type="range"
             min="0"
@@ -105,7 +105,7 @@ export const PlaybackControls: React.FC = () => {
                 <button
                   onClick={() => jumpToEvent(event)}
                   title={`${event.title} (${new Date(event.date).getFullYear()})`}
-                  className="w-1.5 h-3 bg-white/40 hover:bg-white hover:h-4 transition-all cursor-pointer rounded-xs"
+                  className="w-1.5 h-2.5 sm:h-3 bg-white/40 hover:bg-white hover:h-4 transition-all cursor-pointer rounded-xs"
                 />
               </div>
             ))}
@@ -113,12 +113,12 @@ export const PlaybackControls: React.FC = () => {
         </div>
 
         {/* Controls and Telemetry Readout */}
-        <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
           {/* Transport buttons */}
           <div className="flex items-center gap-1">
             <button
               onClick={resetToStart}
-              className="p-1.5 rounded hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+              className="p-1 sm:p-1.5 rounded hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
               title="Reset to 1977 Launch"
             >
               <RotateCcw className="w-3.5 h-3.5" />
@@ -126,10 +126,10 @@ export const PlaybackControls: React.FC = () => {
 
             <button
               onClick={() => stepDays(-30)}
-              className="p-1.5 rounded hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+              className="p-1 sm:p-1.5 rounded hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
               title="Step -30 Days"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-3.5 h-3.5" />
             </button>
 
             <button
@@ -137,10 +137,10 @@ export const PlaybackControls: React.FC = () => {
                 setDirection(-1);
                 if (!isPlaying) togglePlay();
               }}
-              className={`p-1.5 rounded transition-colors cursor-pointer ${
+              className={`p-1 sm:p-1.5 rounded transition-colors cursor-pointer ${
                 isPlaying && playbackDirection === -1
                   ? 'text-rose-400 bg-rose-500/20'
-                  : 'text-slate-400 hover:text-white hover:bg-white/10'
+                  : 'text-zinc-400 hover:text-white hover:bg-white/10'
               }`}
               title="Play Reverse"
             >
@@ -150,9 +150,9 @@ export const PlaybackControls: React.FC = () => {
             {/* Play / Pause */}
             <button
               onClick={togglePlay}
-              className="px-3 py-1 rounded bg-white text-black font-semibold hover:bg-slate-200 transition-colors flex items-center gap-1.5 cursor-pointer ml-1 mr-1"
+              className="px-2.5 sm:px-3 py-1 rounded bg-white text-black font-semibold hover:bg-zinc-200 transition-colors flex items-center gap-1.5 cursor-pointer mx-0.5 sm:mx-1 text-xs"
             >
-              {isPlaying ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current" />}
+              {isPlaying ? <Pause className="w-3 h-3 fill-current" /> : <Play className="w-3 h-3 fill-current" />}
               <span>{isPlaying ? 'PAUSE' : 'PLAY'}</span>
             </button>
 
@@ -161,10 +161,10 @@ export const PlaybackControls: React.FC = () => {
                 setDirection(1);
                 if (!isPlaying) togglePlay();
               }}
-              className={`p-1.5 rounded transition-colors cursor-pointer ${
+              className={`p-1 sm:p-1.5 rounded transition-colors cursor-pointer ${
                 isPlaying && playbackDirection === 1
                   ? 'text-sky-400 bg-sky-500/20'
-                  : 'text-slate-400 hover:text-white hover:bg-white/10'
+                  : 'text-zinc-400 hover:text-white hover:bg-white/10'
               }`}
               title="Play Forward"
             >
@@ -173,40 +173,40 @@ export const PlaybackControls: React.FC = () => {
 
             <button
               onClick={() => stepDays(30)}
-              className="p-1.5 rounded hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+              className="p-1 sm:p-1.5 rounded hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
               title="Step +30 Days"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-3.5 h-3.5" />
             </button>
 
             <button
               onClick={jumpToPresent}
-              className="ml-2 px-2 py-1 rounded hover:bg-white/10 text-slate-400 hover:text-white text-[11px] transition-colors cursor-pointer flex items-center gap-1"
+              className="ml-1 sm:ml-2 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded hover:bg-white/10 text-zinc-400 hover:text-white text-[10px] sm:text-[11px] transition-colors cursor-pointer flex items-center gap-1"
               title="Jump to Present (2026)"
             >
               <Clock className="w-3 h-3" />
-              <span>Today</span>
+              <span className="hidden sm:inline">Today</span>
             </button>
           </div>
 
           {/* Time Readout */}
-          <div className="flex items-center gap-3 text-slate-200">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 text-zinc-200 text-[11px] sm:text-xs">
             <span className="font-semibold text-white tracking-wider">{dateStr}</span>
-            <span className="text-slate-400">{timeStr}</span>
-            <span className="text-slate-500">•</span>
-            <span className="text-slate-400">JD {jd}</span>
+            <span className="text-zinc-400">{timeStr}</span>
+            <span className="text-zinc-500 hidden md:inline">•</span>
+            <span className="text-zinc-400 hidden md:inline">JD {jd}</span>
           </div>
 
           {/* Speed selector */}
-          <div className="flex items-center gap-1 bg-white/5 p-0.5 rounded border border-white/10 text-[11px]">
+          <div className="flex items-center gap-0.5 sm:gap-1 bg-white/5 p-0.5 rounded border border-white/10 text-[10px] sm:text-[11px]">
             {SPEED_PRESETS.map(preset => (
               <button
                 key={preset.value}
                 onClick={() => setSpeed(preset.value)}
-                className={`px-2 py-0.5 rounded transition-colors cursor-pointer ${
+                className={`px-1.5 sm:px-2 py-0.5 rounded transition-colors cursor-pointer ${
                   playbackSpeed === preset.value
                     ? 'bg-white/20 text-white font-medium'
-                    : 'text-slate-400 hover:text-slate-200'
+                    : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
                 {preset.label.replace('/s', '').replace('Realtime (1×)', '1×')}

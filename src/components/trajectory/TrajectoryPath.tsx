@@ -116,11 +116,10 @@ export const TrajectoryPath: React.FC<TrajectoryPathProps> = ({
                 />
               </mesh>
 
-              {/* Marker Label */}
+              {/* Marker Label - fixed screen pixel size without zoom distortion */}
               <Html
                 position={[0, 0.04, 0]}
                 center
-                distanceFactor={18}
                 style={{ pointerEvents: 'auto' }}
               >
                 <button

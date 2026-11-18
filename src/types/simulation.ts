@@ -28,7 +28,7 @@ export interface CelestialBodyData {
   radiusKm: number;
   color: string;
   emissive?: string;
-  orbitRadiusAU: number; // approximate semi-major axis
+  orbitRadiusAU: number;
   hasRings?: boolean;
   ringInnerRadius?: number;
   ringOuterRadius?: number;
@@ -36,6 +36,8 @@ export interface CelestialBodyData {
   rotationPeriodHours: number;
   description: string;
   textureType: 'sun' | 'earth' | 'jupiter' | 'saturn' | 'uranus' | 'neptune' | 'mars' | 'mercury' | 'venus';
+  modelPath?: string;
+  modelScaleFactor: number;
 }
 
 export type CameraFocusTarget = 
@@ -69,6 +71,9 @@ export interface SimulationState {
   cameraTarget: CameraFocusTarget;
   isFollowingSpacecraft: boolean;
   
+  // Optimization mode (only Sun, Earth, Voyagers load 3D GLB models; others use procedural shaders)
+  optimizationMode: boolean;
+  
   // Visual Toggles
   showVoyager1Trajectory: boolean;
   showVoyager2Trajectory: boolean;
@@ -76,9 +81,7 @@ export interface SimulationState {
   showHeliosphereBoundaries: boolean;
   showEventMarkers: boolean;
   showCelestialLabels: boolean;
-  scaleMode: ScaleMode;      // enhanced visual sizing for planets vs true scale
   
   // Active Event
   selectedEvent: MissionEvent | null;
 }
-

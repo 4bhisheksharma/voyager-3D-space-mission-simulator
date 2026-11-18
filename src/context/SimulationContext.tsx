@@ -65,6 +65,10 @@ interface SimulationContextType extends SimulationState {
   setIsFollowingSpacecraft: (follow: boolean) => void;
   setScaleMode: (mode: ScaleMode) => void;
   
+  // Optimization
+  optimizationMode: boolean;
+  toggleOptimizationMode: () => void;
+
   // Toggle visibility
   toggleVoyager1Trajectory: () => void;
   toggleVoyager2Trajectory: () => void;
@@ -95,6 +99,10 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [cameraTarget, setCameraTarget] = useState<CameraFocusTarget>('overview');
   const [isFollowingSpacecraft, setIsFollowingSpacecraft] = useState<boolean>(false);
   const [scaleMode, setScaleMode] = useState<ScaleMode>('enhanced');
+
+  // Optimization mode
+  const [optimizationMode, setOptimizationMode] = useState<boolean>(false);
+  const toggleOptimizationMode = useCallback(() => setOptimizationMode(o => !o), []);
 
   // Visual toggles
   const [showVoyager1Trajectory, setShowVoyager1Trajectory] = useState<boolean>(true);
@@ -317,6 +325,7 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     cameraTarget,
     isFollowingSpacecraft,
     scaleMode,
+    optimizationMode,
     showVoyager1Trajectory,
     showVoyager2Trajectory,
     showPlanetaryOrbits,
@@ -350,6 +359,7 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     toggleHeliosphereBoundaries,
     toggleEventMarkers,
     toggleCelestialLabels,
+    toggleOptimizationMode,
     setSelectedEvent
   };
 

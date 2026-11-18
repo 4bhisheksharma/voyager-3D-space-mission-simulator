@@ -1,0 +1,29 @@
+{
+  "key": "spacecraft-voyagers",
+  "name": "Voyager 1 and 2",
+  "type": "spacecraft",
+  "version": 3,
+  "minGaiaSkyVersion": 3070301,
+  "description": "NASA's two Voyager spacecrafts, which represent the furthest man-made objects go have ever left Earth. The Voyager mission consists of twin NASA spacecraft, Voyager 1 and Voyager 2, launched in August and September 1977 to conduct a Grand Tour of the outer Solar System. Using gravity-assist trajectories, both probes studied Jupiter and Saturn; Voyager 2 continued to Uranus (1986) and Neptune (1989), remaining the only spacecraft to visit the ice giants. Each carries a 3.7-meter high-gain antenna, imaging systems, spectrometers, magnetometers, and plasma instruments, powered by radioisotope thermoelectric generators (RTGs). Both spacecraft have exited the heliosphere—Voyager 1 in 2012 and Voyager 2 in 2018—and now operate in interstellar space, continuing to transmit heliophysics and plasma data via NASA's Deep Space Network. Each probe carries the Golden Record, a curated collection of Earth sounds and images intended for any potential extraterrestrial encounter.",
+  "releasenotes": [
+    "Add dataset card."
+  ],
+  "creator": "Toni Sagristà, tsagrista@ari.uni-heidelberg.de",
+  "links": [
+    "https://voyager.jpl.nasa.gov/"
+  ],
+  "sizeBytes": 3634635,
+  "nObjects": 4,
+  "check": "$data/spacecraft-voyagers/dataset.json",
+  "files": [
+    "$data/spacecraft-voyagers"
+  ],
+  "data": [
+    {
+      "loader": "gaia.cu9.ari.gaiaorbit.data.JsonLoader",
+      "files": [
+        "$data/spacecraft-voyagers/satellite-voyagers.json"
+      ]
+    }
+  ]
+}

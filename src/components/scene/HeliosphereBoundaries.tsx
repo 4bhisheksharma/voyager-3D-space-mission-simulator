@@ -34,10 +34,9 @@ export const HeliosphereBoundaries: React.FC = () => {
             />
           </mesh>
 
-          {/* Minimal distance mark */}
+          {/* Minimal distance mark - fixed screen size */}
           <Html
             position={[ring.radius, 0, 0]}
-            distanceFactor={30}
             style={{ pointerEvents: 'none', userSelect: 'none' }}
           >
             <span className="text-[8px] font-mono tracking-widest text-white/30 whitespace-nowrap">

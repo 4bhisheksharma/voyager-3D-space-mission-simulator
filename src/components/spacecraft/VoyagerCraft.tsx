@@ -13,13 +13,12 @@ interface VoyagerCraftProps {
 
 export const VoyagerCraft: React.FC<VoyagerCraftProps> = ({ id, point, isSelected }) => {
   const groupRef = useRef<THREE.Group>(null);
-  const { setSelectedSpacecraft, setCameraTarget, setIsFollowingSpacecraft, showCelestialLabels } = useSimulation();
+  const { setSelectedSpacecraft, setCameraTarget, setIsFollowingSpacecraft, showCelestialLabels, cameraTarget } = useSimulation();
 
   // Load NASA VTAD 3D model
   const { scene } = useGLTF('/models/voyager.glb');
   const clonedScene = useMemo(() => {
     const clone = scene.clone();
-    // Enable shadows and ensure materials react to lighting
     clone.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         const mesh = child as THREE.Mesh;
@@ -34,7 +33,7 @@ export const VoyagerCraft: React.FC<VoyagerCraftProps> = ({ id, point, isSelecte
   const name = isV1 ? 'Voyager 1' : 'Voyager 2';
   const accentColor = isV1 ? '#34d399' : '#fbbf24';
 
-  // Orient high-gain antenna back towards Earth/Sun (origin [0,0,0])
+  // Orient high-gain dish back towards Earth/Sun (origin [0,0,0])
   useFrame(() => {
     if (!groupRef.current || !point) return;
     groupRef.current.lookAt(0, 0, 0);
@@ -49,12 +48,14 @@ export const VoyagerCraft: React.FC<VoyagerCraftProps> = ({ id, point, isSelecte
     setIsFollowingSpacecraft(true);
   };
 
+  const isFocused = cameraTarget === id;
+
   return (
     <group ref={groupRef} position={[point.x, point.y, point.z]}>
-      {/* Spacecraft fill lighting to ensure PBR materials are clearly visible in deep space */}
-      <pointLight color="#ffffff" intensity={1.5} distance={2} decay={1} />
+      {/* Fill lighting to illuminate the 3D model in deep space */}
+      <pointLight color="#ffffff" intensity={2.0} distance={3} decay={1} />
 
-      {/* 3D Spacecraft Model - completely unobstructed (no spheres covering it!) */}
+      {/* 3D Spacecraft Model - completely unobstructed */}
       <group onClick={handleClick}>
         <primitive
           object={clonedScene}
@@ -62,38 +63,38 @@ export const VoyagerCraft: React.FC<VoyagerCraftProps> = ({ id, point, isSelecte
           rotation={[0, Math.PI, 0]}
         />
 
-        {/* Minimal targeting ring visible only when selected */}
+        {/* Minimal targeting ring when selected */}
         {isSelected && (
           <mesh rotation={[-Math.PI / 2, 0, 0]}>
-            <ringGeometry args={[0.08, 0.085, 32]} />
+            <ringGeometry args={[0.06, 0.064, 32]} />
             <meshBasicMaterial color={accentColor} side={THREE.DoubleSide} transparent opacity={0.6} />
           </mesh>
         )}
       </group>
 
-      {/* Sleek, Minimal Monospace HUD Tag */}
-      {showCelestialLabels && (
+      {/* 
+        CRITICAL FIX: 
+        Notice: distanceFactor is OMITTED so label maintains a fixed, non-scaling screen pixel size!
+        When the user is focused on the spacecraft (isFocused), we hide the label completely
+        so it NEVER blocks the 3D model view!
+      */}
+      {showCelestialLabels && !isFocused && (
         <Html
-          position={[0, 0.1, 0]}
+          position={[0, 0.08, 0]}
           center
-          distanceFactor={18}
           style={{ pointerEvents: 'none', userSelect: 'none' }}
         >
           <div
             onClick={handleClick}
-            className={`flex items-center gap-1.5 px-2 py-0.5 rounded backdrop-blur-xs border transition-all pointer-events-auto cursor-pointer ${
-              isSelected
-                ? 'bg-black/90 border-white/30 text-white shadow-sm'
-                : 'bg-black/75 border-white/10 text-slate-300 hover:border-white/20'
-            }`}
+            className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-black/80 border border-white/10 text-slate-300 pointer-events-auto cursor-pointer shadow-xs whitespace-nowrap"
           >
             <span
-              className="w-1.5 h-1.5 rounded-full"
+              className="w-1.5 h-1.5 rounded-full shrink-0"
               style={{ backgroundColor: accentColor }}
             />
             <span className="text-[10px] font-mono tracking-wider uppercase font-medium">{name}</span>
             <span className="text-[9px] font-mono text-slate-400">
-              {point.dist.toFixed(1)} AU
+              {point.dist.toFixed(0)} AU
             </span>
           </div>
         </Html>
