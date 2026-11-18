@@ -103,36 +103,24 @@ export const TrajectoryPath: React.FC<TrajectoryPathProps> = ({
           const isSelected = selectedEvent?.id === event.id;
           return (
             <group key={event.id} position={position}>
-              {/* 3D Pin sphere */}
+              {/* 3D Pin */}
               <mesh
                 onClick={(e) => {
                   e.stopPropagation();
                   jumpToEvent(event);
                 }}
               >
-                <sphereGeometry args={[isSelected ? 0.35 : 0.22, 16, 16]} />
+                <sphereGeometry args={[isSelected ? 0.03 : 0.016, 12, 12]} />
                 <meshBasicMaterial
-                  color={isSelected ? '#38bdf8' : primaryColor}
-                  wireframe={false}
+                  color={isSelected ? '#ffffff' : primaryColor}
                 />
               </mesh>
 
-              {/* Glowing halo ring */}
-              <mesh rotation={[-Math.PI / 2, 0, 0]}>
-                <ringGeometry args={[0.3, 0.45, 16]} />
-                <meshBasicMaterial
-                  color={primaryColor}
-                  side={THREE.DoubleSide}
-                  transparent
-                  opacity={isSelected ? 0.9 : 0.4}
-                />
-              </mesh>
-
-              {/* Marker HTML Label on hover/select */}
+              {/* Marker Label */}
               <Html
-                position={[0, 0.45, 0]}
+                position={[0, 0.04, 0]}
                 center
-                distanceFactor={38}
+                distanceFactor={18}
                 style={{ pointerEvents: 'auto' }}
               >
                 <button
@@ -140,13 +128,13 @@ export const TrajectoryPath: React.FC<TrajectoryPathProps> = ({
                     e.stopPropagation();
                     jumpToEvent(event);
                   }}
-                  className={`px-2 py-0.5 rounded text-[10px] font-mono whitespace-nowrap transition-all shadow-md cursor-pointer ${
+                  className={`px-1.5 py-0.5 rounded text-[9px] font-mono whitespace-nowrap transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-sky-500 text-slate-950 font-bold ring-2 ring-sky-300'
-                      : 'bg-slate-900/90 text-slate-200 hover:bg-slate-800 border border-slate-700/80 hover:border-slate-500'
+                      ? 'bg-white text-black font-semibold ring-1 ring-white'
+                      : 'bg-black/75 text-slate-300 hover:text-white border border-white/10 hover:border-white/30'
                   }`}
                 >
-                  <span className="font-semibold">{event.short}</span>
+                  <span>{event.short}</span>
                 </button>
               </Html>
             </group>

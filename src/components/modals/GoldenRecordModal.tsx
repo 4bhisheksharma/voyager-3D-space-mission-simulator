@@ -106,20 +106,20 @@ export const GoldenRecordModal: React.FC<GoldenRecordModalProps> = ({ isOpen, on
           {activeTab === 'cover' && (
             <div className="flex flex-col md:flex-row gap-6 items-center">
               {/* Golden record cover illustration */}
-              <div className="relative w-56 h-56 rounded-full bg-linear-to-tr from-amber-600 via-yellow-500 to-amber-700 p-1 shrink-0 shadow-[0_0_30px_rgba(245,158,11,0.3)] flex items-center justify-center">
-                <div className="w-full h-full rounded-full border-4 border-amber-800/80 bg-slate-950 flex flex-col items-center justify-center relative overflow-hidden">
-                  <div className="absolute inset-0 rounded-full border border-amber-500/30 scale-90" />
-                  <div className="absolute inset-0 rounded-full border border-amber-500/20 scale-75" />
-                  <div className="absolute inset-0 rounded-full border border-amber-500/20 scale-50" />
-                  <div className="w-8 h-8 rounded-full bg-amber-500/30 border border-amber-400 flex items-center justify-center">
-                    <div className="w-2 h-2 rounded-full bg-amber-400" />
+              <div className="relative w-48 h-48 rounded-full border-2 border-amber-500/40 bg-black p-1 shrink-0 flex items-center justify-center">
+                <div className="w-full h-full rounded-full border border-amber-500/20 bg-slate-950 flex flex-col items-center justify-center relative overflow-hidden">
+                  <div className="absolute inset-0 rounded-full border border-amber-500/20 scale-90" />
+                  <div className="absolute inset-0 rounded-full border border-amber-500/15 scale-75" />
+                  <div className="absolute inset-0 rounded-full border border-amber-500/15 scale-50" />
+                  <div className="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-400/60 flex items-center justify-center">
+                    <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
                   </div>
                   {/* Pulsar star rays graphic */}
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-40">
-                    <div className="w-32 h-0.5 bg-amber-300 rotate-12" />
-                    <div className="w-28 h-0.5 bg-amber-300 -rotate-45" />
-                    <div className="w-36 h-0.5 bg-amber-300 rotate-75" />
-                    <div className="w-24 h-0.5 bg-amber-300 -rotate-15" />
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-30">
+                    <div className="w-28 h-px bg-amber-300 rotate-12" />
+                    <div className="w-24 h-px bg-amber-300 -rotate-45" />
+                    <div className="w-32 h-px bg-amber-300 rotate-75" />
+                    <div className="w-20 h-px bg-amber-300 -rotate-15" />
                   </div>
                 </div>
               </div>

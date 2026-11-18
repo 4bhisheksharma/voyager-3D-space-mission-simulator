@@ -59,7 +59,6 @@ export const PlanetMesh: React.FC<PlanetMeshProps> = ({ body, jd }) => {
           <mesh
             ref={sphereRef}
             onClick={(e) => { e.stopPropagation(); setCameraTarget('sun'); }}
-            className="cursor-pointer"
           >
             <sphereGeometry args={[visualRadius, 32, 32]} />
             <meshBasicMaterial map={texture} color="#fffbeb" />

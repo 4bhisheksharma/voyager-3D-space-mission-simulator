@@ -55,7 +55,7 @@ export const VoyagerCraft: React.FC<VoyagerCraftProps> = ({ id, point, isSelecte
       <pointLight color="#ffffff" intensity={1.5} distance={2} decay={1} />
 
       {/* 3D Spacecraft Model - completely unobstructed (no spheres covering it!) */}
-      <group onClick={handleClick} className="cursor-pointer">
+      <group onClick={handleClick}>
         <primitive
           object={clonedScene}
           scale={[0.015, 0.015, 0.015]}
