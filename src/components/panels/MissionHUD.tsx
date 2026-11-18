@@ -53,18 +53,26 @@ export const MissionHUD: React.FC = () => {
 
   const jd = useMemo(() => 2440587.5 + currentTimeMs / 86400000.0, [currentTimeMs]);
 
+  // Pre-launch state check
+  const isPreLaunch = useMemo(() => {
+    const launchMs = new Date(launchDateStr).getTime();
+    return currentTimeMs < launchMs;
+  }, [launchDateStr, currentTimeMs]);
+
   // Distance from Earth
   const distFromEarthAU = useMemo(() => {
+    if (isPreLaunch) return 0;
     if (!current) return 0;
     const earthPos = getPlanetPositionAU('earth', jd);
     return distance3D([current.x, current.y, current.z], earthPos);
-  }, [current, jd]);
+  }, [isPreLaunch, current, jd]);
 
   const met = useMemo(() => {
     return getMissionElapsedTime(launchDateStr, currentTimeMs);
   }, [launchDateStr, currentTimeMs]);
 
   const missionPhase = useMemo(() => {
+    if (isPreLaunch) return 'Pre-launch (Cape Canaveral SLC-41)';
     if (!current) return 'Pre-launch';
     const year = new Date(currentTimeMs).getUTCFullYear();
     if (current.dist > 121) return 'Interstellar Space';
@@ -73,7 +81,7 @@ export const MissionHUD: React.FC = () => {
     if (year >= 1986 && !isV1) return 'Ice Giants (Uranus / Neptune)';
     if (year >= 1979) return 'Planetary Grand Tour';
     return 'Earth Departure';
-  }, [current, currentTimeMs, isV1]);
+  }, [isPreLaunch, current, currentTimeMs, isV1]);
 
   const filteredEvents = useMemo(() => {
     return events.filter(e => {
@@ -182,8 +190,12 @@ export const MissionHUD: React.FC = () => {
 
             <div className="p-2 rounded bg-white/5 border border-white/5 flex flex-col">
               <span className="text-[10px] text-slate-400">Velocity</span>
-              <span className="text-sm font-bold text-white mt-0.5">{current.speed.toFixed(1)} km/s</span>
-              <span className="text-[10px] text-slate-400 mt-0.5">{(current.speed * 2236.94).toLocaleString(undefined, { maximumFractionDigits: 0 })} mph</span>
+              <span className="text-sm font-bold text-white mt-0.5">
+                {isPreLaunch ? '0.0 km/s' : `${current.speed.toFixed(1)} km/s`}
+              </span>
+              <span className="text-[10px] text-slate-400 mt-0.5">
+                {isPreLaunch ? 'Launch Pad SLC-41' : `${(current.speed * 2236.94).toLocaleString(undefined, { maximumFractionDigits: 0 })} mph`}
+              </span>
             </div>
 
             <div className="p-2 rounded bg-white/5 border border-white/5 flex flex-col">

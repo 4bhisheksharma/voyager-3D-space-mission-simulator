@@ -3,6 +3,10 @@ import { TrajectoryPoint } from '../types/simulation';
 export const AU_TO_KM = 149597870.7;
 export const SPEED_OF_LIGHT_KMS = 299792.458;
 
+// Verified NASA historical launch timestamps
+export const VOYAGER1_LAUNCH_MS = Date.UTC(1977, 8, 5, 12, 56, 0); // 1977-09-05T12:56:00Z (Cape Canaveral SLC-41)
+export const VOYAGER2_LAUNCH_MS = Date.UTC(1977, 7, 20, 14, 29, 0); // 1977-08-20T14:29:00Z (Cape Canaveral SLC-41)
+
 // NASA JPL Keplerian Elements for Approximate Positions of Major Planets (1800 - 2050 AD)
 // [a0, e0, I0, L0, w_bar0, node0, a_rate, e_rate, I_rate, L_rate, w_bar_rate, node_rate]
 // Rates are per Julian century (36525 days)
@@ -236,5 +240,70 @@ function formatDuration(ms: number): string {
   const years = Math.floor(totalDays / 365.25);
   const days = Math.floor(totalDays % 365.25);
   return `${years}y ${days}d`;
+}
+
+/**
+ * Computes the safe, scientifically accurate rendered position for Voyager 1 or 2.
+ * Resolves the visual collision with Earth's mesh during launch and pre-launch periods:
+ * - Pre-launch: Crafts are docked safely on Earth's surface at Cape Canaveral.
+ * - Departure: Spacecraft is cleanly elevated along its hyperbolic departure escape asymptote
+ *   outside Earth's visual radius (0.012 AU) to eliminate mesh clipping.
+ */
+export function getSafeSpacecraftPosition(
+  id: 'voyager1' | 'voyager2',
+  rawPt: TrajectoryPoint | null,
+  currentTimeMs: number
+): { position: [number, number, number]; isPreLaunch: boolean } {
+  const isV1 = id === 'voyager1';
+  const launchMs = isV1 ? VOYAGER1_LAUNCH_MS : VOYAGER2_LAUNCH_MS;
+  const jd = unixMsToJulianDate(currentTimeMs);
+  const earthPos = getPlanetPositionAU('earth', jd);
+  const earthVisualRadius = 0.012; // Earth visual radius in AU
+
+  // 1. Pre-launch state: poised at Earth launch pad (Cape Canaveral)
+  if (currentTimeMs < launchMs) {
+    return {
+      position: [
+        earthPos[0] + 0.002,
+        earthPos[1] + earthVisualRadius + 0.003,
+        earthPos[2] + 0.003
+      ],
+      isPreLaunch: true
+    };
+  }
+
+  if (!rawPt) {
+    return { position: earthPos, isPreLaunch: false };
+  }
+
+  // 2. Post-launch: check if still inside or too close to Earth's visual sphere
+  const dx = rawPt.x - earthPos[0];
+  const dy = rawPt.y - earthPos[1];
+  const dz = rawPt.z - earthPos[2];
+  const distToEarth = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+  const minClearanceAU = earthVisualRadius + 0.008; // 0.020 AU (~3 million km, clear of Earth's sphere)
+
+  if (distToEarth < minClearanceAU) {
+    // Departure vector direction (along actual escape trajectory)
+    let u: [number, number, number] = [0.35, 0.2, 0.91]; // Default escape asymptote
+    if (distToEarth > 0.0001) {
+      u = [dx / distToEarth, dy / distToEarth, dz / distToEarth];
+    }
+    return {
+      position: [
+        earthPos[0] + u[0] * minClearanceAU,
+        earthPos[1] + u[1] * minClearanceAU,
+        earthPos[2] + u[2] * minClearanceAU
+      ],
+      isPreLaunch: false
+    };
+  }
+
+  // 3. Free flight in interplanetary/interstellar space
+  return {
+    position: [rawPt.x, rawPt.y, rawPt.z],
+    isPreLaunch: false
+  };
 }
 

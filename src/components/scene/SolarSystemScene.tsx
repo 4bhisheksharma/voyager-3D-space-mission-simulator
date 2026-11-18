@@ -42,7 +42,7 @@ export const SolarSystemScene: React.FC = () => {
         <ambientLight intensity={0.5} />
         <hemisphereLight args={['#1e293b', '#020617', 0.4]} />
 
-        {/* Orbit Controls */}
+        {/* Orbit Controls with Free Roam, Cursor Zoom & Pan */}
         <OrbitControls
           ref={controlsRef}
           enableDamping
@@ -51,6 +51,9 @@ export const SolarSystemScene: React.FC = () => {
           maxDistance={800}
           zoomSpeed={1.2}
           rotateSpeed={0.7}
+          zoomToCursor={true}
+          screenSpacePanning={true}
+          enablePan={true}
         />
 
         {/* Camera lerp controller */}

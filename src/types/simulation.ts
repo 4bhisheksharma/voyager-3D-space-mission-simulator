@@ -53,7 +53,8 @@ export type CameraFocusTarget =
   | 'uranus' 
   | 'neptune' 
   | 'voyager1' 
-  | 'voyager2';
+  | 'voyager2'
+  | 'free';
 
 export type ScaleMode = 'astronomical' | 'enhanced';
 

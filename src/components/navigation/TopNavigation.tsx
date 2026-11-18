@@ -7,7 +7,8 @@ import {
   ChevronDown,
   Gauge,
   Menu,
-  X
+  X,
+  Camera
 } from 'lucide-react';
 import { useSimulation } from '../../context/SimulationContext';
 import { CameraFocusTarget } from '../../types/simulation';
@@ -74,7 +75,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
   };
 
   return (
-    <header className="absolute top-0 inset-x-0 z-20 h-11 px-3 sm:px-4 flex items-center justify-between bg-black/75 backdrop-blur-md border-b border-white/10 select-none">
+    <header className="absolute top-0 inset-x-0 z-40 h-11 px-3 sm:px-4 flex items-center justify-between bg-black/80 backdrop-blur-md border-b border-white/10 select-none">
       {/* Left: Brand & Probe Switcher */}
       <div className="flex items-center gap-2 sm:gap-4">
         <div
@@ -117,21 +118,35 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
         </div>
       </div>
 
-      {/* Center: Desktop Camera Target Presets */}
+      {/* Center: Desktop Camera Target Presets & Free Cam Mode */}
       <nav className="hidden lg:flex items-center gap-1 font-mono text-xs">
         {targets.map(t => (
           <button
             key={t.id}
             onClick={() => handleSelectTarget(t.id)}
-            className={`px-2 py-0.5 rounded transition-colors cursor-pointer ${
+            className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
               cameraTarget === t.id
-                ? 'text-white bg-white/10 font-medium'
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
+                ? 'text-white bg-white/10 font-medium border border-white/15'
+                : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5 border border-transparent'
             }`}
           >
             {t.label}
           </button>
         ))}
+
+        {/* Free Roam Camera Toggle with Camera Icon */}
+        <button
+          onClick={() => handleSelectTarget('free')}
+          className={`flex items-center gap-1.5 px-2 py-0.5 rounded transition-all cursor-pointer ml-1 ${
+            cameraTarget === 'free'
+              ? 'bg-sky-500/25 text-sky-200 border border-sky-400/50 font-semibold shadow-xs'
+              : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5 border border-white/5'
+          }`}
+          title="Free Camera Mode: Pan freely across space, and zoom directly towards cursor position"
+        >
+          <Camera className="w-3 h-3 text-sky-400" />
+          <span>Free Cam</span>
+        </button>
       </nav>
 
       {/* Right Controls: Optimization Mode, Layers, Golden Record, Info */}
@@ -151,7 +166,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
           <span>{optimizationMode ? 'ON' : 'OFF'}</span>
         </button>
 
-        {/* Overlays Menu */}
+        {/* Overlays Menu with Backdrop and Top Stacking Context */}
         <div className="relative">
           <button
             onClick={() => setShowLayers(!showLayers)}
@@ -164,62 +179,74 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
           </button>
 
           {showLayers && (
-            <div className="absolute right-0 mt-2 w-48 p-2 rounded-lg bg-zinc-950/95 border border-white/10 shadow-2xl backdrop-blur-md z-30 font-mono text-xs space-y-1">
-              <label className="flex items-center justify-between p-1 rounded hover:bg-white/5 cursor-pointer text-zinc-300">
-                <span>Voyager 1 Path</span>
-                <input
-                  type="checkbox"
-                  checked={showVoyager1Trajectory}
-                  onChange={toggleVoyager1Trajectory}
-                  className="rounded accent-emerald-500"
-                />
-              </label>
-              <label className="flex items-center justify-between p-1 rounded hover:bg-white/5 cursor-pointer text-zinc-300">
-                <span>Voyager 2 Path</span>
-                <input
-                  type="checkbox"
-                  checked={showVoyager2Trajectory}
-                  onChange={toggleVoyager2Trajectory}
-                  className="rounded accent-amber-500"
-                />
-              </label>
-              <label className="flex items-center justify-between p-1 rounded hover:bg-white/5 cursor-pointer text-zinc-300">
-                <span>Planetary Orbits</span>
-                <input
-                  type="checkbox"
-                  checked={showPlanetaryOrbits}
-                  onChange={togglePlanetaryOrbits}
-                  className="rounded accent-sky-500"
-                />
-              </label>
-              <label className="flex items-center justify-between p-1 rounded hover:bg-white/5 cursor-pointer text-zinc-300">
-                <span>Heliosphere Shells</span>
-                <input
-                  type="checkbox"
-                  checked={showHeliosphereBoundaries}
-                  onChange={toggleHeliosphereBoundaries}
-                  className="rounded accent-rose-500"
-                />
-              </label>
-              <label className="flex items-center justify-between p-1 rounded hover:bg-white/5 cursor-pointer text-zinc-300">
-                <span>Milestone Pins</span>
-                <input
-                  type="checkbox"
-                  checked={showEventMarkers}
-                  onChange={toggleEventMarkers}
-                  className="rounded accent-sky-500"
-                />
-              </label>
-              <label className="flex items-center justify-between p-1 rounded hover:bg-white/5 cursor-pointer text-zinc-300">
-                <span>Celestial Labels</span>
-                <input
-                  type="checkbox"
-                  checked={showCelestialLabels}
-                  onChange={toggleCelestialLabels}
-                  className="rounded accent-sky-500"
-                />
-              </label>
-            </div>
+            <>
+              {/* Invisible Click-away Backdrop to close on outside click */}
+              <div 
+                className="fixed inset-0 z-40 cursor-default" 
+                onClick={() => setShowLayers(false)} 
+              />
+
+              {/* Elevated Popover Dialogue (High z-50 to never get covered by HUD) */}
+              <div className="absolute right-0 mt-2 w-52 p-2 rounded-xl bg-zinc-950/95 border border-white/15 shadow-2xl backdrop-blur-xl z-50 font-mono text-xs space-y-1">
+                <div className="px-1.5 py-1 text-[10px] text-zinc-400 font-semibold tracking-wider uppercase border-b border-white/10 mb-1">
+                  Scene Overlays
+                </div>
+                <label className="flex items-center justify-between p-1 rounded hover:bg-white/5 cursor-pointer text-zinc-300">
+                  <span>Voyager 1 Path</span>
+                  <input
+                    type="checkbox"
+                    checked={showVoyager1Trajectory}
+                    onChange={toggleVoyager1Trajectory}
+                    className="rounded accent-emerald-500"
+                  />
+                </label>
+                <label className="flex items-center justify-between p-1 rounded hover:bg-white/5 cursor-pointer text-zinc-300">
+                  <span>Voyager 2 Path</span>
+                  <input
+                    type="checkbox"
+                    checked={showVoyager2Trajectory}
+                    onChange={toggleVoyager2Trajectory}
+                    className="rounded accent-amber-500"
+                  />
+                </label>
+                <label className="flex items-center justify-between p-1 rounded hover:bg-white/5 cursor-pointer text-zinc-300">
+                  <span>Planetary Orbits</span>
+                  <input
+                    type="checkbox"
+                    checked={showPlanetaryOrbits}
+                    onChange={togglePlanetaryOrbits}
+                    className="rounded accent-sky-500"
+                  />
+                </label>
+                <label className="flex items-center justify-between p-1 rounded hover:bg-white/5 cursor-pointer text-zinc-300">
+                  <span>Heliosphere Shells</span>
+                  <input
+                    type="checkbox"
+                    checked={showHeliosphereBoundaries}
+                    onChange={toggleHeliosphereBoundaries}
+                    className="rounded accent-rose-500"
+                  />
+                </label>
+                <label className="flex items-center justify-between p-1 rounded hover:bg-white/5 cursor-pointer text-zinc-300">
+                  <span>Milestone Pins</span>
+                  <input
+                    type="checkbox"
+                    checked={showEventMarkers}
+                    onChange={toggleEventMarkers}
+                    className="rounded accent-sky-500"
+                  />
+                </label>
+                <label className="flex items-center justify-between p-1 rounded hover:bg-white/5 cursor-pointer text-zinc-300">
+                  <span>Celestial Labels</span>
+                  <input
+                    type="checkbox"
+                    checked={showCelestialLabels}
+                    onChange={toggleCelestialLabels}
+                    className="rounded accent-sky-500"
+                  />
+                </label>
+              </div>
+            </>
           )}
         </div>
 
@@ -279,6 +306,16 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
               {t.label}
             </button>
           ))}
+          {/* Mobile Free Cam */}
+          <button
+            onClick={() => handleSelectTarget('free')}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded transition-colors text-xs w-full mt-1 justify-center ${
+              cameraTarget === 'free' ? 'bg-sky-500/25 text-sky-200 border border-sky-400/50 font-semibold' : 'bg-white/5 text-zinc-300'
+            }`}
+          >
+            <Camera className="w-3.5 h-3.5 text-sky-400" />
+            <span>Free Roam Camera</span>
+          </button>
         </div>
       )}
     </header>
