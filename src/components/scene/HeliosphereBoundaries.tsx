@@ -21,30 +21,33 @@ export const HeliosphereBoundaries: React.FC = () => {
 
   return (
     <group name="heliosphere-boundaries">
-      {/* Concentric distance rings */}
-      {distanceRings.map(ring => (
-        <group key={ring.radius}>
-          <mesh rotation={[-Math.PI / 2, 0, 0]}>
-            <ringGeometry args={[ring.radius - 0.04, ring.radius + 0.04, 96]} />
-            <meshBasicMaterial
-              color="#ffffff"
-              transparent
-              opacity={ring.radius >= 94 ? 0.2 : 0.06}
-              side={THREE.DoubleSide}
-            />
-          </mesh>
+      {/* Concentric distance rings - razor-thin scientific reference lines */}
+      {distanceRings.map(ring => {
+        const delta = Math.max(0.004, ring.radius * 0.0015);
+        return (
+          <group key={ring.radius}>
+            <mesh rotation={[-Math.PI / 2, 0, 0]}>
+              <ringGeometry args={[ring.radius - delta, ring.radius + delta, 128]} />
+              <meshBasicMaterial
+                color="#ffffff"
+                transparent
+                opacity={ring.radius >= 94 ? 0.16 : 0.05}
+                side={THREE.DoubleSide}
+              />
+            </mesh>
 
-          {/* Minimal distance mark - fixed screen size */}
-          <Html
-            position={[ring.radius, 0, 0]}
-            style={{ pointerEvents: 'none', userSelect: 'none' }}
-          >
-            <span className="text-[8px] font-mono tracking-widest text-white/30 whitespace-nowrap">
-              {ring.label}
-            </span>
-          </Html>
-        </group>
-      ))}
+            {/* Minimal distance mark - fixed screen size */}
+            <Html
+              position={[ring.radius, 0, 0]}
+              style={{ pointerEvents: 'none', userSelect: 'none' }}
+            >
+              <span className="text-[8px] font-mono tracking-widest text-white/30 whitespace-nowrap pl-1">
+                {ring.label}
+              </span>
+            </Html>
+          </group>
+        );
+      })}
 
       {/* Heliopause Boundary Outer Bubble */}
       <mesh scale={[120, 90, 110]} rotation={[0, 0.2, 0]}>

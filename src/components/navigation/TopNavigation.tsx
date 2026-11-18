@@ -51,7 +51,9 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
     { id: 'voyager1', label: 'Voyager 1' },
     { id: 'voyager2', label: 'Voyager 2' },
     { id: 'jupiter', label: 'Jupiter' },
-    { id: 'saturn', label: 'Saturn' }
+    { id: 'saturn', label: 'Saturn' },
+    { id: 'uranus', label: 'Uranus' },
+    { id: 'neptune', label: 'Neptune' }
   ];
 
   const handleSelectSpacecraft = (id: 'voyager1' | 'voyager2') => {

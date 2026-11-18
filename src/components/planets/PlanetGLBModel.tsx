@@ -20,14 +20,33 @@ export const PlanetGLBModel: React.FC<PlanetGLBModelProps> = ({ modelPath, targe
       }
     });
 
-    // Compute exact world bounding box of the loaded GLTF model
-    const box = new THREE.Box3().setFromObject(c);
-    const size = new THREE.Vector3();
-    box.getSize(size);
-    const maxDimension = Math.max(size.x, size.y, size.z);
+    // Compute bounding box of the planet body (excluding ring/circle meshes to prevent distortion)
+    const bodyBox = new THREE.Box3();
+    let hasBodyMesh = false;
 
-    // Normalize to exact target diameter in AU
-    const computedScale = maxDimension > 0 ? targetDiameter / maxDimension : 1.0;
+    c.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        const name = (child.name || '').toLowerCase();
+        const isRing = name.includes('ring') || name.includes('circle');
+        if (!isRing) {
+          const b = new THREE.Box3().setFromObject(child);
+          bodyBox.union(b);
+          hasBodyMesh = true;
+        }
+      }
+    });
+
+    // Fallback if no specific body mesh was found
+    if (!hasBodyMesh) {
+      bodyBox.setFromObject(c);
+    }
+
+    const bodySize = new THREE.Vector3();
+    bodyBox.getSize(bodySize);
+    const maxBodyDimension = Math.max(bodySize.x, bodySize.y, bodySize.z);
+
+    // Normalize scale so the planet's spherical body matches the exact target diameter in AU
+    const computedScale = maxBodyDimension > 0 ? targetDiameter / maxBodyDimension : 1.0;
     return { cloned: c, scale: computedScale };
   }, [scene, targetDiameter]);
 

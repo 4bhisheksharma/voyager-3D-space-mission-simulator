@@ -26,19 +26,21 @@ export const PlanetMesh: React.FC<PlanetMeshProps> = ({ body, jd }) => {
     return getPlanetPositionAU(body.id, jd);
   }, [body.id, jd]);
 
-  // Target physical diameters in AU (carefully proportioned so inner planets don't crowd and outer planets aren't bloated)
+  // Scientifically calibrated celestial body proportions (body diameters in AU)
+  // Perfectly balanced so gas giants are majestic, terrestrial planets are distinguishable,
+  // and no body ever obscures solar orbits or neighboring paths.
   const targetDiameter = useMemo(() => {
     switch (body.id) {
-      case 'sun': return 0.08;      // Compact luminous star core
-      case 'mercury': return 0.016;  // Smallest inner planet
-      case 'venus': return 0.024;
-      case 'earth': return 0.026;
-      case 'mars': return 0.020;
-      case 'jupiter': return 0.075;  // Majestic gas giant
-      case 'saturn': return 0.110;   // Planet + rings
-      case 'uranus': return 0.050;   // Ice giant
-      case 'neptune': return 0.045;  // Ice giant
-      default: return 0.03;
+      case 'sun': return 0.110;      // Radiant central star (leaves >0.33 AU clear space before Mercury)
+      case 'mercury': return 0.012;  // Smallest terrestrial world (0.5x Earth)
+      case 'venus': return 0.022;    // Sister terrestrial planet (0.92x Earth)
+      case 'earth': return 0.024;    // Terrestrial reference base
+      case 'mars': return 0.016;     // Red planet (0.67x Earth)
+      case 'jupiter': return 0.092;  // Majestic gas giant king (3.83x Earth)
+      case 'saturn': return 0.075;   // Ringed gas giant body (3.12x Earth; rings span ~0.147 AU)
+      case 'uranus': return 0.050;   // Ice giant body (2.08x Earth; rings span ~0.110 AU)
+      case 'neptune': return 0.048;  // Ice giant (2.00x Earth)
+      default: return 0.025;
     }
   }, [body.id]);
 
@@ -174,8 +176,14 @@ export const PlanetMesh: React.FC<PlanetMeshProps> = ({ body, jd }) => {
             {/* Minimal selection ring */}
             {isSelected && (
               <mesh rotation={[-Math.PI / 2, 0, 0]}>
-                <ringGeometry args={[visualRadius * 1.3, visualRadius * 1.35, 32]} />
-                <meshBasicMaterial color="#38bdf8" side={THREE.DoubleSide} transparent opacity={0.7} />
+                <ringGeometry
+                  args={[
+                    visualRadius * (body.hasRings ? 2.1 : 1.35),
+                    visualRadius * (body.hasRings ? 2.16 : 1.41),
+                    48
+                  ]}
+                />
+                <meshBasicMaterial color="#38bdf8" side={THREE.DoubleSide} transparent opacity={0.8} />
               </mesh>
             )}
           </group>
@@ -189,7 +197,7 @@ export const PlanetMesh: React.FC<PlanetMeshProps> = ({ body, jd }) => {
       */}
       {showCelestialLabels && !isSelected && (
         <Html
-          position={[0, visualRadius + 0.03, 0]}
+          position={[0, visualRadius * (body.hasRings ? 2.1 : 1.3) + 0.015, 0]}
           center
           style={{ pointerEvents: 'none', userSelect: 'none' }}
         >

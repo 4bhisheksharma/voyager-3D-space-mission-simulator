@@ -37,54 +37,60 @@ export const CameraController: React.FC<CameraControllerProps> = ({ controlsRef,
 
       case 'sun':
         newTarget.set(0, 0, 0);
-        offsetDistance = 0.22;
+        offsetDistance = 0.28;
         break;
 
       case 'earth': {
         const [px, py, pz] = getPlanetPositionAU('earth', jd);
         newTarget.set(px, py, pz);
-        offsetDistance = 0.09;
+        offsetDistance = 0.07;
         break;
       }
 
       case 'mercury': {
         const [px, py, pz] = getPlanetPositionAU('mercury', jd);
         newTarget.set(px, py, pz);
-        offsetDistance = 0.06;
+        offsetDistance = 0.045;
         break;
       }
 
       case 'venus': {
         const [px, py, pz] = getPlanetPositionAU('venus', jd);
         newTarget.set(px, py, pz);
-        offsetDistance = 0.08;
+        offsetDistance = 0.065;
         break;
       }
 
       case 'mars': {
         const [px, py, pz] = getPlanetPositionAU('mars', jd);
         newTarget.set(px, py, pz);
-        offsetDistance = 0.08;
+        offsetDistance = 0.055;
         break;
       }
 
       case 'jupiter': {
         const [px, py, pz] = getPlanetPositionAU('jupiter', jd);
         newTarget.set(px, py, pz);
-        offsetDistance = 0.28;
+        offsetDistance = 0.26;
         break;
       }
 
       case 'saturn': {
         const [px, py, pz] = getPlanetPositionAU('saturn', jd);
         newTarget.set(px, py, pz);
-        offsetDistance = 0.26;
+        offsetDistance = 0.32;
         break;
       }
 
-      case 'uranus':
+      case 'uranus': {
+        const [px, py, pz] = getPlanetPositionAU('uranus', jd);
+        newTarget.set(px, py, pz);
+        offsetDistance = 0.22;
+        break;
+      }
+
       case 'neptune': {
-        const [px, py, pz] = getPlanetPositionAU(cameraTarget, jd);
+        const [px, py, pz] = getPlanetPositionAU('neptune', jd);
         newTarget.set(px, py, pz);
         offsetDistance = 0.16;
         break;
@@ -93,7 +99,7 @@ export const CameraController: React.FC<CameraControllerProps> = ({ controlsRef,
       case 'voyager1': {
         if (v1Current) {
           newTarget.set(v1Current.x, v1Current.y, v1Current.z);
-          offsetDistance = 0.08;
+          offsetDistance = 0.10;
         }
         break;
       }
@@ -101,7 +107,7 @@ export const CameraController: React.FC<CameraControllerProps> = ({ controlsRef,
       case 'voyager2': {
         if (v2Current) {
           newTarget.set(v2Current.x, v2Current.y, v2Current.z);
-          offsetDistance = 0.08;
+          offsetDistance = 0.10;
         }
         break;
       }
