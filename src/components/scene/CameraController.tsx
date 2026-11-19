@@ -14,6 +14,12 @@ interface CameraControllerProps {
 const _scratchTarget = new THREE.Vector3();
 const _scratchCam = new THREE.Vector3();
 const _scratchOffset = new THREE.Vector3();
+const _scratchDir = new THREE.Vector3();
+const _startDir = new THREE.Vector3(0, 0.12, 0.32).normalize();
+const _endDir = new THREE.Vector3(0, 35, 55).normalize();
+const _d0 = Math.hypot(0.12, 0.32);
+const _d1 = Math.hypot(35, 55);
+const _logRatio = Math.log(_d1 / _d0);
 
 export const CameraController: React.FC<CameraControllerProps> = ({ controlsRef, jd }) => {
   const { camera } = useThree();
@@ -71,25 +77,27 @@ export const CameraController: React.FC<CameraControllerProps> = ({ controlsRef,
       return;
     }
 
-    // 2. CINEMATIC INTRO: Slowly zoom out from the Sun to the entire Solar System overview
+    // 2. CINEMATIC INTRO: Logarithmically-smooth, lag-free zoom out from the Sun to entire Solar System
     if (isIntroActive.current) {
       if (cameraTarget !== 'overview') {
         isIntroActive.current = false;
       } else {
-        introElapsed.current += delta;
+        // Clamp delta to prevent sudden jump during heavy frames
+        const dt = Math.min(delta, 0.033);
+        introElapsed.current += dt;
         const progress = Math.min(introElapsed.current / INTRO_DURATION, 1.0);
+
         // Majestic cubic ease-in-out curve
         const ease = progress < 0.5 
           ? 4 * progress * progress * progress 
           : 1 - Math.pow(-2 * progress + 2, 3) / 2;
 
-        _scratchCam.lerpVectors(
-          sunCamStart.current,
-          overviewCamEnd.current,
-          ease
-        );
-        // Gentle vertical lift arc
-        _scratchCam.y += Math.sin(ease * Math.PI) * 1.5;
+        // Perceptually uniform logarithmic distance interpolation
+        const currentDist = _d0 * Math.exp(ease * _logRatio);
+        _scratchDir.lerpVectors(_startDir, _endDir, ease).normalize();
+        _scratchCam.copy(_scratchDir).multiplyScalar(currentDist);
+        // Subtle vertical lift arc proportional to distance
+        _scratchCam.y += Math.sin(ease * Math.PI) * (currentDist * 0.035);
 
         camera.position.copy(_scratchCam);
         controlsRef.current.target.set(0, 0, 0);

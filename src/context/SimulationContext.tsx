@@ -185,7 +185,41 @@ interface SimulationContextType extends SimulationState {
 
 const SimulationContext = createContext<SimulationContextType | null>(null);
 
+const STORAGE_KEY = 'voyager_simulator_preferences_v1';
+
+interface UserSavedPreferences {
+  optimizationMode?: boolean;
+  showVoyager1Trajectory?: boolean;
+  showVoyager2Trajectory?: boolean;
+  showPlanetaryOrbits?: boolean;
+  showHeliosphereBoundaries?: boolean;
+  showEventMarkers?: boolean;
+  showCelestialLabels?: boolean;
+  selectedSpacecraft?: SpacecraftId;
+}
+
+const loadPreferences = (): UserSavedPreferences => {
+  try {
+    if (typeof window === 'undefined') return {};
+    const item = window.localStorage.getItem(STORAGE_KEY);
+    return item ? JSON.parse(item) : {};
+  } catch (err) {
+    return {};
+  }
+};
+
+const savePreferences = (prefs: UserSavedPreferences) => {
+  try {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
+  } catch (err) {
+    // Ignore quota or disabled storage errors
+  }
+};
+
 export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const initialPrefs = useMemo(() => loadPreferences(), []);
+
   // Datasets
   const [voyager1Data, setVoyager1Data] = useState<TrajectoryPoint[]>([]);
   const [voyager2Data, setVoyager2Data] = useState<TrajectoryPoint[]>([]);
@@ -198,24 +232,63 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(2592000); // Default 1 month / sec
   const [playbackDirection, setPlaybackDirection] = useState<1 | -1>(1);
 
-  // Selection & Camera
-  const [selectedSpacecraft, setSelectedSpacecraft] = useState<SpacecraftId>('voyager1');
+  // Selection & Camera (persisted preferences)
+  const [selectedSpacecraft, setSelectedSpacecraft] = useState<SpacecraftId>(
+    initialPrefs.selectedSpacecraft ?? 'voyager1'
+  );
   const [cameraTarget, setCameraTarget] = useState<CameraFocusTarget>('overview');
   const [isFollowingSpacecraft, setIsFollowingSpacecraft] = useState<boolean>(false);
   const [scaleMode, setScaleMode] = useState<ScaleMode>('enhanced');
 
-  // Optimization mode
-  const [optimizationMode, setOptimizationMode] = useState<boolean>(false);
+  // Optimization mode (remembered via localStorage)
+  const [optimizationMode, setOptimizationMode] = useState<boolean>(
+    initialPrefs.optimizationMode ?? false
+  );
   const toggleOptimizationMode = useCallback(() => setOptimizationMode(o => !o), []);
 
-  // Visual toggles
-  const [showVoyager1Trajectory, setShowVoyager1Trajectory] = useState<boolean>(true);
-  const [showVoyager2Trajectory, setShowVoyager2Trajectory] = useState<boolean>(true);
-  const [showPlanetaryOrbits, setShowPlanetaryOrbits] = useState<boolean>(true);
-  const [showHeliosphereBoundaries, setShowHeliosphereBoundaries] = useState<boolean>(true);
-  const [showEventMarkers, setShowEventMarkers] = useState<boolean>(true);
-  const [showCelestialLabels, setShowCelestialLabels] = useState<boolean>(true);
+  // Visual toggles (remembered via localStorage)
+  const [showVoyager1Trajectory, setShowVoyager1Trajectory] = useState<boolean>(
+    initialPrefs.showVoyager1Trajectory ?? true
+  );
+  const [showVoyager2Trajectory, setShowVoyager2Trajectory] = useState<boolean>(
+    initialPrefs.showVoyager2Trajectory ?? true
+  );
+  const [showPlanetaryOrbits, setShowPlanetaryOrbits] = useState<boolean>(
+    initialPrefs.showPlanetaryOrbits ?? true
+  );
+  const [showHeliosphereBoundaries, setShowHeliosphereBoundaries] = useState<boolean>(
+    initialPrefs.showHeliosphereBoundaries ?? true
+  );
+  const [showEventMarkers, setShowEventMarkers] = useState<boolean>(
+    initialPrefs.showEventMarkers ?? true
+  );
+  const [showCelestialLabels, setShowCelestialLabels] = useState<boolean>(
+    initialPrefs.showCelestialLabels ?? true
+  );
   const [selectedEvent, setSelectedEvent] = useState<MissionEvent | null>(null);
+
+  // Automatically save preferences to localStorage whenever changed
+  useEffect(() => {
+    savePreferences({
+      optimizationMode,
+      showVoyager1Trajectory,
+      showVoyager2Trajectory,
+      showPlanetaryOrbits,
+      showHeliosphereBoundaries,
+      showEventMarkers,
+      showCelestialLabels,
+      selectedSpacecraft
+    });
+  }, [
+    optimizationMode,
+    showVoyager1Trajectory,
+    showVoyager2Trajectory,
+    showPlanetaryOrbits,
+    showHeliosphereBoundaries,
+    showEventMarkers,
+    showCelestialLabels,
+    selectedSpacecraft
+  ]);
 
   // Load telemetry datasets and mission events
   useEffect(() => {

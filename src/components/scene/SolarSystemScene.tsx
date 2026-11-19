@@ -1,6 +1,6 @@
 import React, { useRef, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { OrbitControls, Preload } from '@react-three/drei';
 import { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { useSimulation } from '../../context/SimulationContext';
 import { unixMsToJulianDate } from '../../utils/astronomy';
@@ -117,6 +117,9 @@ export const SolarSystemScene: React.FC = () => {
             isSelected={selectedSpacecraft === 'voyager2'}
           />
         )}
+
+        {/* Pre-warm and compile all scene shaders and materials upfront */}
+        <Preload all />
       </Canvas>
     </div>
   );
