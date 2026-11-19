@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   RotateCcw, 
   Disc, 
@@ -8,8 +8,7 @@ import {
   Gauge, 
   Menu, 
   X, 
-  Camera,
-  Search
+  Camera
 } from 'lucide-react';
 import { useSimulation } from '../../context/SimulationContext';
 import { CameraFocusTarget } from '../../types/simulation';
@@ -18,32 +17,6 @@ interface TopNavigationProps {
   onOpenGoldenRecord: () => void;
   onOpenInfo: () => void;
 }
-
-interface SearchItem {
-  id: string;
-  name: string;
-  type: 'PLANET' | 'STAR' | 'PROBE' | 'SYSTEM' | 'ARTIFACT';
-  targetId: CameraFocusTarget | 'golden_record';
-  dotColor: string;
-  details: string;
-}
-
-const SEARCH_ITEMS: SearchItem[] = [
-  { id: 'sun', name: 'Sun', type: 'STAR', targetId: 'sun', dotColor: 'bg-amber-300', details: 'Central G-type Star (Sol)' },
-  { id: 'mercury', name: 'Mercury', type: 'PLANET', targetId: 'mercury', dotColor: 'bg-zinc-400', details: '0.39 AU • Innermost Terrestrial Planet' },
-  { id: 'venus', name: 'Venus', type: 'PLANET', targetId: 'venus', dotColor: 'bg-amber-200', details: '0.72 AU • Cloud-shrouded Sister Planet' },
-  { id: 'earth', name: 'Earth', type: 'PLANET', targetId: 'earth', dotColor: 'bg-sky-400', details: '1.00 AU • Launch Origin & Cradle of Life' },
-  { id: 'mars', name: 'Mars', type: 'PLANET', targetId: 'mars', dotColor: 'bg-rose-400', details: '1.52 AU • The Red Planet' },
-  { id: 'jupiter', name: 'Jupiter', type: 'PLANET', targetId: 'jupiter', dotColor: 'bg-amber-500', details: '5.20 AU • Gas Giant King & Flyby Encounter' },
-  { id: 'saturn', name: 'Saturn', type: 'PLANET', targetId: 'saturn', dotColor: 'bg-yellow-200', details: '9.54 AU • Ringed Giant & Titan Encounter' },
-  { id: 'uranus', name: 'Uranus', type: 'PLANET', targetId: 'uranus', dotColor: 'bg-cyan-300', details: '19.2 AU • Ice Giant (Voyager 2 Flyby)' },
-  { id: 'neptune', name: 'Neptune', type: 'PLANET', targetId: 'neptune', dotColor: 'bg-blue-400', details: '30.1 AU • Ice Giant & Triton (Voyager 2 Flyby)' },
-  { id: 'voyager1', name: 'Voyager 1', type: 'PROBE', targetId: 'voyager1', dotColor: 'bg-emerald-400', details: 'Interstellar Probe • Farthest Human Object' },
-  { id: 'voyager2', name: 'Voyager 2', type: 'PROBE', targetId: 'voyager2', dotColor: 'bg-amber-400', details: 'Grand Tour Explorer of 4 Outer Planets' },
-  { id: 'overview', name: 'Solar System Overview', type: 'SYSTEM', targetId: 'overview', dotColor: 'bg-white', details: 'Complete Heliosphere View' },
-  { id: 'inner', name: 'Inner Planets', type: 'SYSTEM', targetId: 'inner_solar_system', dotColor: 'bg-zinc-300', details: 'Sun, Mercury, Venus, Earth, Mars' },
-  { id: 'record', name: 'The Golden Record', type: 'ARTIFACT', targetId: 'golden_record', dotColor: 'bg-yellow-400', details: 'Sounds and Images of Earth for Eternity' }
-];
 
 export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord, onOpenInfo }) => {
   const {
@@ -72,54 +45,15 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
 
   const [showLayers, setShowLayers] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(0);
 
-  const searchRef = useRef<HTMLDivElement>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
-
-  // Close search dropdown on outside click
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
-        setIsSearchOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
+  // Curated Quick Focus Targets: Only Sun, Earth, Solar System, Voyager 1 & Voyager 2
   const targets: { id: CameraFocusTarget; label: string }[] = [
     { id: 'overview', label: 'Solar System' },
-    { id: 'inner_solar_system', label: 'Inner Planets' },
+    { id: 'sun', label: 'Sun' },
+    { id: 'earth', label: 'Earth' },
     { id: 'voyager1', label: 'Voyager 1' },
-    { id: 'voyager2', label: 'Voyager 2' },
-    { id: 'jupiter', label: 'Jupiter' },
-    { id: 'saturn', label: 'Saturn' },
-    { id: 'uranus', label: 'Uranus' },
-    { id: 'neptune', label: 'Neptune' }
+    { id: 'voyager2', label: 'Voyager 2' }
   ];
-
-  const filteredSearchItems = useMemo(() => {
-    if (!searchQuery.trim()) return SEARCH_ITEMS;
-    const q = searchQuery.toLowerCase().trim();
-    return SEARCH_ITEMS.filter(
-      item => item.name.toLowerCase().includes(q) ||
-              item.type.toLowerCase().includes(q) ||
-              item.details.toLowerCase().includes(q)
-    );
-  }, [searchQuery]);
-
-  const handleSelectItem = (item: SearchItem) => {
-    if (item.targetId === 'golden_record') {
-      onOpenGoldenRecord();
-    } else {
-      handleSelectTarget(item.targetId);
-    }
-    setSearchQuery('');
-    setIsSearchOpen(false);
-  };
 
   const handleSelectSpacecraft = (id: 'voyager1' | 'voyager2') => {
     setSelectedSpacecraft(id);
@@ -138,27 +72,9 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
     setShowMobileMenu(false);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!isSearchOpen || filteredSearchItems.length === 0) return;
-
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setSelectedIndex(prev => (prev + 1) % filteredSearchItems.length);
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setSelectedIndex(prev => (prev - 1 + filteredSearchItems.length) % filteredSearchItems.length);
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      const chosen = filteredSearchItems[selectedIndex];
-      if (chosen) handleSelectItem(chosen);
-    } else if (e.key === 'Escape') {
-      setIsSearchOpen(false);
-    }
-  };
-
   return (
     <header className="absolute top-0 inset-x-0 z-40 h-11 px-3 sm:px-4 flex items-center justify-between bg-zinc-950/85 backdrop-blur-xl border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.6)] select-none">
-      {/* Left: Brand & Probe Switcher */}
+      {/* Left: Brand & Probe Switcher (Without distracting colored dots) */}
       <div className="flex items-center gap-2 sm:gap-4">
         <div
           onClick={() => { setCameraTarget('overview'); setIsFollowingSpacecraft(false); }}
@@ -170,150 +86,78 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
           </span>
         </div>
 
-        {/* Minimal Probe Switcher - Clean Steady NASA Badges */}
+        {/* Minimal Probe Switcher - Clean Typographic NASA Design (No green/yellow dots) */}
         <div className="flex items-center bg-white/5 p-0.5 rounded-lg border border-white/10 text-[11px] font-mono">
           <button
             onClick={() => handleSelectSpacecraft('voyager1')}
-            className={`px-2 py-0.5 rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-2.5 py-0.5 rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
               selectedSpacecraft === 'voyager1'
-                ? 'bg-emerald-500/20 text-emerald-300 font-semibold'
-                : 'text-zinc-400 hover:text-zinc-200'
+                ? 'bg-emerald-500/25 text-emerald-300 font-semibold border border-emerald-500/30'
+                : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
             }`}
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
             <span>V1</span>
-            {v1Current && <span className="hidden xl:inline text-[10px] text-zinc-400">{v1Current.dist.toFixed(0)}AU</span>}
+            {v1Current && <span className="hidden xl:inline text-[10px] text-zinc-400 font-normal">{v1Current.dist.toFixed(0)}AU</span>}
           </button>
 
           <button
             onClick={() => handleSelectSpacecraft('voyager2')}
-            className={`px-2 py-0.5 rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-2.5 py-0.5 rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
               selectedSpacecraft === 'voyager2'
-                ? 'bg-amber-500/20 text-amber-300 font-semibold'
-                : 'text-zinc-400 hover:text-zinc-200'
+                ? 'bg-amber-500/25 text-amber-300 font-semibold border border-amber-500/30'
+                : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
             }`}
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
             <span>V2</span>
-            {v2Current && <span className="hidden xl:inline text-[10px] text-zinc-400">{v2Current.dist.toFixed(0)}AU</span>}
+            {v2Current && <span className="hidden xl:inline text-[10px] text-zinc-400 font-normal">{v2Current.dist.toFixed(0)}AU</span>}
           </button>
         </div>
       </div>
 
-      {/* Center: Live Search Field & Quick Celestial Presets */}
-      <div className="flex items-center gap-2">
-        {/* Instant Search Field */}
-        <div ref={searchRef} className="relative hidden md:block">
-          <div className="relative flex items-center">
-            <Search className="w-3.5 h-3.5 absolute left-2.5 text-zinc-400 pointer-events-none" />
-            <input
-              ref={searchInputRef}
-              type="text"
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setIsSearchOpen(true);
-                setSelectedIndex(0);
-              }}
-              onFocus={() => setIsSearchOpen(true)}
-              onKeyDown={handleKeyDown}
-              placeholder="Search planets & crafts..."
-              className="w-44 lg:w-52 h-7 pl-8 pr-6 text-[11px] font-mono bg-white/5 hover:bg-white/10 focus:bg-zinc-900 border border-white/10 focus:border-sky-500/50 rounded-lg text-zinc-200 placeholder:text-zinc-500 focus:outline-hidden transition-all"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => { setSearchQuery(''); setIsSearchOpen(false); }}
-                className="absolute right-2 text-zinc-500 hover:text-zinc-300 cursor-pointer"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            )}
-          </div>
-
-          {/* Instant Dropdown (shown on typing or clicking) */}
-          {isSearchOpen && (
-            <div className="absolute top-9 left-0 w-72 max-h-80 overflow-y-auto rounded-xl bg-zinc-950/95 border border-white/15 shadow-2xl backdrop-blur-xl z-50 p-1 font-mono text-xs space-y-0.5">
-              <div className="px-2 py-1 text-[9px] uppercase tracking-wider text-zinc-500 border-b border-white/10 mb-1 flex justify-between">
-                <span>Celestial Directory</span>
-                <span>{filteredSearchItems.length} Available</span>
-              </div>
-              {filteredSearchItems.length === 0 ? (
-                <div className="px-3 py-3 text-center text-zinc-500 text-[11px]">
-                  No celestial body matches "{searchQuery}"
-                </div>
-              ) : (
-                filteredSearchItems.map((item, idx) => (
-                  <button
-                    key={item.id}
-                    onClick={() => handleSelectItem(item)}
-                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
-                      idx === selectedIndex
-                        ? 'bg-sky-500/20 text-sky-200'
-                        : 'text-zinc-300 hover:bg-white/5'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 truncate">
-                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${item.dotColor}`} />
-                      <div className="truncate">
-                        <div className="font-medium text-zinc-200 truncate">{item.name}</div>
-                        <div className="text-[9px] text-zinc-400 truncate">{item.details}</div>
-                      </div>
-                    </div>
-                    <span className="text-[8px] uppercase tracking-wider text-zinc-500 shrink-0 ml-2 px-1 py-0.5 rounded bg-white/5 border border-white/5">
-                      {item.type}
-                    </span>
-                  </button>
-                ))
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Desktop Camera Target Presets & Free Cam Mode */}
-        <nav className="hidden lg:flex items-center gap-1 font-mono text-xs">
-          {targets.map(t => (
-            <button
-              key={t.id}
-              onClick={() => handleSelectTarget(t.id)}
-              className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
-                cameraTarget === t.id
-                  ? 'text-white bg-white/10 font-medium border border-white/15'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5 border border-transparent'
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-
-          {/* Free Roam Camera Toggle with Camera Icon */}
+      {/* Center: Curated Camera Target Presets & Free Cam Mode */}
+      <nav className="hidden md:flex items-center gap-1 font-mono text-xs">
+        {targets.map(t => (
           <button
-            onClick={() => handleSelectTarget('free')}
-            className={`flex items-center gap-1.5 px-2 py-0.5 rounded transition-all cursor-pointer ml-1 ${
-              cameraTarget === 'free'
-                ? 'bg-sky-500/25 text-sky-200 border border-sky-400/50 font-semibold shadow-xs'
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5 border border-white/5'
+            key={t.id}
+            onClick={() => handleSelectTarget(t.id)}
+            className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+              cameraTarget === t.id
+                ? 'text-white bg-white/15 font-semibold border border-white/20 shadow-xs'
+                : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5 border border-transparent'
             }`}
-            title="Free Camera Mode: Pan freely across space, and zoom directly towards cursor position"
           >
-            <Camera className="w-3 h-3 text-sky-400" />
-            <span>Free Cam</span>
+            {t.label}
           </button>
-        </nav>
-      </div>
+        ))}
+
+        {/* Free Roam Camera Toggle with Camera Icon */}
+        <button
+          onClick={() => handleSelectTarget('free')}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-all cursor-pointer ml-1.5 ${
+            cameraTarget === 'free'
+              ? 'bg-sky-500/25 text-sky-200 border border-sky-400/50 font-semibold shadow-xs'
+              : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5 border border-white/10'
+          }`}
+          title="Free Camera Mode: Pan freely across space, and zoom directly towards cursor position"
+        >
+          <Camera className="w-3.5 h-3.5 text-sky-400" />
+          <span>Free Cam</span>
+        </button>
+      </nav>
 
       {/* Right Controls: Optimization Mode, Layers, Golden Record, Info */}
       <div className="flex items-center gap-1.5 sm:gap-2">
         {/* Optimization Mode Toggle (Performance Mode) */}
         <button
           onClick={toggleOptimizationMode}
-          className={`flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-mono transition-colors cursor-pointer border ${
+          className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-mono transition-colors cursor-pointer border ${
             optimizationMode
               ? 'bg-sky-500/20 text-sky-300 border-sky-500/40 font-semibold'
               : 'bg-white/5 text-zinc-400 hover:text-zinc-200 border-white/10'
           }`}
           title="Optimization Mode: switches off non-essential 3D planet models to ensure smooth framerates on all hardware"
         >
-          <Gauge className="w-3 h-3 text-sky-400" />
+          <Gauge className="w-3.5 h-3.5 text-sky-400" />
           <span className="hidden sm:inline">Optimize:</span>
           <span>{optimizationMode ? 'ON' : 'OFF'}</span>
         </button>
@@ -322,10 +166,10 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
         <div className="relative">
           <button
             onClick={() => setShowLayers(!showLayers)}
-            className="flex items-center gap-1 px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-mono text-zinc-300 transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-mono text-zinc-300 transition-colors cursor-pointer"
             title="Display Overlays"
           >
-            <Layers className="w-3 h-3 text-zinc-400" />
+            <Layers className="w-3.5 h-3.5 text-zinc-400" />
             <span className="hidden sm:inline">Layers</span>
             <ChevronDown className="w-2.5 h-2.5 text-zinc-400" />
           </button>
@@ -405,10 +249,10 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
         {/* Golden Record */}
         <button
           onClick={onOpenGoldenRecord}
-          className="flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[11px] font-mono transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[11px] font-mono transition-colors cursor-pointer"
           title="The Golden Record"
         >
-          <Disc className="w-3 h-3 text-amber-400" />
+          <Disc className="w-3.5 h-3.5 text-amber-400" />
           <span className="hidden md:inline">Record</span>
         </button>
 
@@ -418,89 +262,57 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
             setCameraTarget('overview');
             setIsFollowingSpacecraft(false);
           }}
-          className="p-1 rounded bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+          className="p-1.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
           title="Reset Camera to Overview"
         >
-          <RotateCcw className="w-3 h-3" />
+          <RotateCcw className="w-3.5 h-3.5" />
         </button>
 
         {/* Info */}
         <button
           onClick={onOpenInfo}
-          className="p-1 rounded bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+          className="p-1.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
           title="Documentation & Scientific Grounding"
         >
-          <Info className="w-3 h-3" />
+          <Info className="w-3.5 h-3.5" />
         </button>
 
         {/* Mobile Targets Menu Toggle */}
         <button
           onClick={() => setShowMobileMenu(!showMobileMenu)}
-          className="lg:hidden p-1 rounded bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+          className="md:hidden p-1.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
           title="Camera Targets"
         >
           {showMobileMenu ? <X className="w-3.5 h-3.5" /> : <Menu className="w-3.5 h-3.5" />}
         </button>
       </div>
 
-      {/* Mobile Targets Dropdown with Search */}
+      {/* Mobile Targets Dropdown */}
       {showMobileMenu && (
-        <div className="lg:hidden absolute top-11 inset-x-0 bg-zinc-950/95 border-b border-white/10 p-3 flex flex-col gap-2 backdrop-blur-md z-30 font-mono text-xs shadow-2xl">
-          {/* Mobile Search Input */}
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 absolute left-2.5 top-2 text-zinc-400 pointer-events-none" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search planets & crafts..."
-              className="w-full h-8 pl-8 pr-4 text-xs font-mono bg-white/5 border border-white/10 rounded-lg text-zinc-200 placeholder:text-zinc-500 focus:outline-hidden"
-            />
-          </div>
-
-          {searchQuery ? (
-            <div className="max-h-52 overflow-y-auto space-y-1">
-              {filteredSearchItems.map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => handleSelectItem(item)}
-                  className="w-full flex items-center justify-between p-2 rounded bg-white/5 text-left text-xs text-zinc-200 cursor-pointer"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className={`w-1.5 h-1.5 rounded-full ${item.dotColor}`} />
-                    <span>{item.name}</span>
-                  </div>
-                  <span className="text-[9px] text-zinc-500 uppercase">{item.type}</span>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <>
-              <div className="text-[10px] text-zinc-400 uppercase tracking-wider">Camera Targets:</div>
-              <div className="flex flex-wrap gap-1.5">
-                {targets.map(t => (
-                  <button
-                    key={t.id}
-                    onClick={() => handleSelectTarget(t.id)}
-                    className={`px-2.5 py-1 rounded transition-colors text-xs ${
-                      cameraTarget === t.id ? 'bg-white text-black font-semibold' : 'bg-white/5 text-zinc-300'
-                    }`}
-                  >
-                    {t.label}
-                  </button>
-                ))}
-              </div>
+        <div className="md:hidden absolute top-11 inset-x-0 bg-zinc-950/95 border-b border-white/10 p-3 flex flex-col gap-2 backdrop-blur-md z-30 font-mono text-xs shadow-2xl">
+          <div className="text-[10px] text-zinc-400 uppercase tracking-wider">Camera Targets:</div>
+          <div className="flex flex-wrap gap-1.5">
+            {targets.map(t => (
               <button
-                onClick={() => handleSelectTarget('free')}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded transition-colors text-xs w-full mt-1 justify-center ${
-                  cameraTarget === 'free' ? 'bg-sky-500/25 text-sky-200 border border-sky-400/50 font-semibold' : 'bg-white/5 text-zinc-300'
+                key={t.id}
+                onClick={() => handleSelectTarget(t.id)}
+                className={`px-3 py-1.5 rounded-md transition-colors text-xs cursor-pointer ${
+                  cameraTarget === t.id ? 'bg-white text-black font-semibold' : 'bg-white/5 text-zinc-300 hover:bg-white/10'
                 }`}
               >
-                <Camera className="w-3.5 h-3.5 text-sky-400" />
-                <span>Free Roam Camera</span>
+                {t.label}
               </button>
-            </>
-          )}
+            ))}
+          </div>
+          <button
+            onClick={() => handleSelectTarget('free')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-colors text-xs w-full mt-1 justify-center cursor-pointer ${
+              cameraTarget === 'free' ? 'bg-sky-500/25 text-sky-200 border border-sky-400/50 font-semibold' : 'bg-white/5 text-zinc-300'
+            }`}
+          >
+            <Camera className="w-3.5 h-3.5 text-sky-400" />
+            <span>Free Roam Camera</span>
+          </button>
         </div>
       )}
     </header>

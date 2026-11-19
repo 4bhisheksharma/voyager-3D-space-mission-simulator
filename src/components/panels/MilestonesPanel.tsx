@@ -142,10 +142,12 @@ export const MilestonesPanel: React.FC<{ isOpen: boolean; onToggle: () => void }
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span
-                    className={`w-2 h-2 rounded-full ${
-                      isV1 ? 'bg-emerald-400' : 'bg-amber-400'
+                    className={`text-[9px] font-mono px-1.5 py-0.5 rounded font-semibold ${
+                      isV1 ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'
                     }`}
-                  />
+                  >
+                    {isV1 ? 'V1' : 'V2'}
+                  </span>
                   <span className="text-[10px] uppercase font-bold text-slate-300">
                     {isV1 ? 'Voyager 1' : 'Voyager 2'}
                   </span>

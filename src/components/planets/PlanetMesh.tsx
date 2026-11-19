@@ -202,11 +202,7 @@ export const PlanetMesh: React.FC<PlanetMeshProps> = ({ body, jd }) => {
           center
           style={{ pointerEvents: 'none', userSelect: 'none' }}
         >
-          <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-black/80 border border-white/10 text-[9px] font-mono tracking-wider text-zinc-300 whitespace-nowrap">
-            <span
-              className="w-1 h-1 rounded-full shrink-0"
-              style={{ backgroundColor: body.color }}
-            />
+          <div className="px-1.5 py-0.5 rounded bg-black/80 border border-white/10 text-[9px] font-mono tracking-wider text-zinc-300 whitespace-nowrap">
             <span className="opacity-90">{body.name.toUpperCase()}</span>
           </div>
         </Html>

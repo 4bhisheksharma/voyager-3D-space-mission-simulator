@@ -34,7 +34,7 @@ export const SolarSystemScene: React.FC = () => {
   return (
     <div className="w-full h-full relative bg-black overflow-hidden">
       <Canvas
-        camera={{ position: [0, 35, 55], fov: 42, near: 0.005, far: 3000 }}
+        camera={{ position: [0, 0.12, 0.32], fov: 42, near: 0.005, far: 3000 }}
         gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
       >
         <color attach="background" args={['#01030a']} />

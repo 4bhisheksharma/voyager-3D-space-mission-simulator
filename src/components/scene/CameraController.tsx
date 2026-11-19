@@ -26,11 +26,19 @@ export const CameraController: React.FC<CameraControllerProps> = ({ controlsRef,
   const isTransitioning = useRef<boolean>(false);
   const isUserInteracting = useRef<boolean>(false);
 
+  // Cinematic Prologue: Slowly zoom out from radiant Sun to full Solar System on load
+  const isIntroActive = useRef<boolean>(true);
+  const introElapsed = useRef<number>(0);
+  const INTRO_DURATION = 4.2; // seconds of cinematic pullback
+  const sunCamStart = useRef(new THREE.Vector3(0, 0.12, 0.32));
+  const overviewCamEnd = useRef(new THREE.Vector3(0, 35, 55));
+
   // Detect user orbit/pan/zoom to pause auto-lerping so controls never fight the user
   useEffect(() => {
     const handleStart = () => {
       isUserInteracting.current = true;
       isTransitioning.current = false;
+      isIntroActive.current = false;
     };
     const handleEnd = () => {
       isUserInteracting.current = false;
@@ -51,8 +59,40 @@ export const CameraController: React.FC<CameraControllerProps> = ({ controlsRef,
 
     // 1. FREE CAMERA MODE: Total freedom to pan, orbit, and zoom anywhere in space
     if (cameraTarget === 'free') {
+      isIntroActive.current = false;
       controlsRef.current.update();
       return;
+    }
+
+    // 2. CINEMATIC INTRO: Slowly zoom out from the Sun to the entire Solar System overview
+    if (isIntroActive.current) {
+      if (cameraTarget !== 'overview') {
+        isIntroActive.current = false;
+      } else {
+        introElapsed.current += delta;
+        const progress = Math.min(introElapsed.current / INTRO_DURATION, 1.0);
+        // Majestic cubic ease-in-out curve
+        const ease = progress < 0.5 
+          ? 4 * progress * progress * progress 
+          : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+        const currentCam = new THREE.Vector3().lerpVectors(
+          sunCamStart.current,
+          overviewCamEnd.current,
+          ease
+        );
+        // Gentle vertical lift arc
+        currentCam.y += Math.sin(ease * Math.PI) * 1.5;
+
+        camera.position.copy(currentCam);
+        controlsRef.current.target.set(0, 0, 0);
+        controlsRef.current.update();
+
+        if (progress >= 1.0) {
+          isIntroActive.current = false;
+        }
+        return;
+      }
     }
 
     // 2. TARGETED CAMERA FOCUS MODES

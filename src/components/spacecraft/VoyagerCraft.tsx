@@ -103,10 +103,6 @@ export const VoyagerCraft: React.FC<VoyagerCraftProps> = ({ id, point, isSelecte
             onClick={handleClick}
             className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-black/85 border border-white/10 text-zinc-300 pointer-events-auto cursor-pointer shadow-lg whitespace-nowrap"
           >
-            <span
-              className="w-1.5 h-1.5 rounded-full shrink-0"
-              style={{ backgroundColor: accentColor }}
-            />
             <span className="text-[10px] font-mono tracking-wider uppercase font-semibold">{name}</span>
             {isPreLaunch ? (
               <span className="text-[9px] font-mono text-emerald-400/90 font-medium">

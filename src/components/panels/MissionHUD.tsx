@@ -50,7 +50,6 @@ export const MissionHUD: React.FC = () => {
   const current = isV1 ? v1Current : v2Current;
   const closestPlanet = isV1 ? closestPlanetV1 : closestPlanetV2;
   const accentColor = isV1 ? 'text-emerald-400' : 'text-amber-400';
-  const dotColor = isV1 ? 'bg-emerald-400' : 'bg-amber-400';
 
   const jd = useMemo(() => 2440587.5 + currentTimeMs / 86400000.0, [currentTimeMs]);
 
@@ -104,7 +103,6 @@ export const MissionHUD: React.FC = () => {
         onClick={() => setIsOpen(true)}
         className="absolute top-13 right-2 sm:right-4 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-950/85 hover:bg-zinc-900 border border-white/15 backdrop-blur-xl text-xs font-mono text-zinc-200 cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.6)] transition-all hover:scale-105 active:scale-95"
       >
-        <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
         <span className="font-semibold tracking-wider">{name}</span>
         {current && (
           <>
@@ -187,9 +185,10 @@ export const MissionHUD: React.FC = () => {
               <Signal className="w-3 h-3 text-emerald-400" />
               <span>DSN CARRIER</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              <span className="text-[9px] text-emerald-400/90 font-medium">LOCKED (70m SUB)</span>
+            <div className="flex items-center gap-1.5 font-mono">
+              <span className="text-[9px] text-emerald-300 font-semibold tracking-wider px-1 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/30">
+                LOCKED (70m SUB)
+              </span>
             </div>
           </div>
 
