@@ -1,9 +1,10 @@
-import React, { useState, Suspense, lazy } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { SimulationProvider, useSimulation } from './context/SimulationContext';
 import { SolarSystemScene } from './components/scene/SolarSystemScene';
 import { TopNavigation } from './components/navigation/TopNavigation';
 import { PlaybackControls } from './components/controls/PlaybackControls';
 import { MissionHUD } from './components/panels/MissionHUD';
+import { CinematicTourHUD } from './components/panels/CinematicTourHUD';
 import { Loader2 } from 'lucide-react';
 
 // Lazy-load heavy modals on-demand to minimize initial bundle size and accelerate page boot
@@ -15,9 +16,18 @@ const ProjectInfoModal = lazy(() =>
 );
 
 const SimulationApp: React.FC = () => {
-  const { isLoadingData } = useSimulation();
+  const { isLoadingData, isModalOpen, registerModal, isCinematicTour } = useSimulation();
   const [showGoldenRecord, setShowGoldenRecord] = useState(false);
   const [showProjectInfo, setShowProjectInfo] = useState(false);
+
+  // Synchronize modal open states to suppress all 3D HTML labels during dialog view
+  useEffect(() => {
+    registerModal('golden-record', showGoldenRecord);
+  }, [showGoldenRecord, registerModal]);
+
+  useEffect(() => {
+    registerModal('project-info', showProjectInfo);
+  }, [showProjectInfo, registerModal]);
 
   if (isLoadingData) {
     return (
@@ -36,7 +46,10 @@ const SimulationApp: React.FC = () => {
   }
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-black select-none">
+    <div 
+      data-modal-open={isModalOpen ? 'true' : 'false'}
+      className="relative w-screen h-screen overflow-hidden bg-black select-none"
+    >
       {/* 1. Full-screen 3D Viewport */}
       <SolarSystemScene />
 
@@ -46,13 +59,16 @@ const SimulationApp: React.FC = () => {
         onOpenInfo={() => setShowProjectInfo(true)}
       />
 
-      {/* 3. Sleek Floating Mission HUD */}
-      <MissionHUD />
+      {/* 3. Sleek Floating Mission HUD (hidden during Cinematic Tour for immersive view) */}
+      {!isCinematicTour && <MissionHUD />}
 
-      {/* 4. Sleek Bottom Playback Controls */}
-      <PlaybackControls />
+      {/* 4. Sleek Bottom Playback Controls (hidden during Cinematic Tour) */}
+      {!isCinematicTour && <PlaybackControls />}
 
-      {/* 5. On-Demand Lazy Loaded Modals */}
+      {/* 5. Autopilot Cinematic Grand Tour HUD */}
+      {isCinematicTour && <CinematicTourHUD />}
+
+      {/* 6. On-Demand Lazy Loaded Modals */}
       <Suspense fallback={null}>
         {showGoldenRecord && (
           <GoldenRecordModal

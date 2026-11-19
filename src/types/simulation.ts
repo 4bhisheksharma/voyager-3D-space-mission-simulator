@@ -58,6 +58,18 @@ export type CameraFocusTarget =
 
 export type ScaleMode = 'astronomical' | 'enhanced';
 
+export interface TourStage {
+  id: string;
+  title: string;
+  subtitle: string;
+  dateStr: string;
+  timeMs: number;
+  target: CameraFocusTarget;
+  craft: SpacecraftId;
+  durationSec: number;
+  description: string;
+}
+
 export interface SimulationState {
   // Time controls
   currentTimeMs: number;     // Current simulation date in Unix ms
@@ -85,4 +97,11 @@ export interface SimulationState {
   
   // Active Event
   selectedEvent: MissionEvent | null;
+
+  // Dialog / Modal visibility state (hides 3D labels when any dialog is open)
+  isModalOpen: boolean;
+
+  // Cinematic Tour Mode
+  isCinematicTour: boolean;
+  tourStageIndex: number;
 }

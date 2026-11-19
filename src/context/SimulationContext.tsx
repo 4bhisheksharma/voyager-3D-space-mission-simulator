@@ -5,7 +5,8 @@ import {
   MissionEvent, 
   SpacecraftId, 
   CameraFocusTarget, 
-  ScaleMode 
+  ScaleMode,
+  TourStage
 } from '../types/simulation';
 import { 
   interpolateTrajectory, 
@@ -31,6 +32,97 @@ export const VOYAGER1_LAUNCH_MS = new Date('1977-09-05T12:56:00Z').getTime();
 export const VOYAGER2_LAUNCH_MS = new Date('1977-08-20T14:29:00Z').getTime();
 export const PRESENT_DAY_MS = new Date('2026-11-18T00:00:00Z').getTime();
 export const END_MISSION_DATA_MS = new Date('2220-12-25T00:00:00Z').getTime();
+
+export const CINEMATIC_TOUR_STAGES: TourStage[] = [
+  {
+    id: 'launch',
+    title: 'Earth Departure & Launch',
+    subtitle: 'Cape Canaveral SLC-41 • August 20, 1977',
+    dateStr: '1977-08-20T14:29:00Z',
+    timeMs: new Date('1977-08-20T14:29:00Z').getTime(),
+    target: 'earth',
+    craft: 'voyager2',
+    durationSec: 14,
+    description: 'Voyager 2 embarks on a rare once-in-176-years geometric alignment of Jupiter, Saturn, Uranus, and Neptune, launched atop a Titan IIIE-Centaur rocket into deep space.'
+  },
+  {
+    id: 'jupiter',
+    title: 'Jupiter Slingshot & Io Volcanism',
+    subtitle: 'Closest Approach 277,000 km • March 5, 1979',
+    dateStr: '1979-03-05T12:05:00Z',
+    timeMs: new Date('1979-03-05T12:05:00Z').getTime(),
+    target: 'jupiter',
+    craft: 'voyager1',
+    durationSec: 16,
+    description: 'Voyager 1 achieves closest approach to Jupiter, discovering active sulfur volcanoes on moon Io—the first active extraterrestrial volcanism ever witnessed—and doubling probe velocity via gravity assist.'
+  },
+  {
+    id: 'saturn',
+    title: 'Saturn & Titan Closest Encounter',
+    subtitle: 'Closest Approach 124,000 km • November 12, 1980',
+    dateStr: '1980-11-12T23:46:00Z',
+    timeMs: new Date('1980-11-12T23:46:00Z').getTime(),
+    target: 'saturn',
+    craft: 'voyager1',
+    durationSec: 16,
+    description: 'Voyager 1 skims 6,490 km over smog-shrouded moon Titan, probing its dense nitrogen atmosphere and liquid hydrocarbon potential, before slingshotting northward out of the ecliptic plane.'
+  },
+  {
+    id: 'uranus',
+    title: 'Uranus Historic Encounter',
+    subtitle: 'Voyager 2 Solo Odyssey • January 24, 1986',
+    dateStr: '1986-01-24T17:59:00Z',
+    timeMs: new Date('1986-01-24T17:59:00Z').getTime(),
+    target: 'uranus',
+    craft: 'voyager2',
+    durationSec: 16,
+    description: 'The ONLY spacecraft in human history to visit Uranus. Voyager 2 braves the cold aquamarine realm, discovering 10 new moons, 2 rings, and an extreme 59-degree tilted magnetic field.'
+  },
+  {
+    id: 'neptune',
+    title: 'Neptune & Triton Cryovolcanoes',
+    subtitle: 'Voyager 2 Solo Odyssey • August 25, 1989',
+    dateStr: '1989-08-25T03:56:00Z',
+    timeMs: new Date('1989-08-25T03:56:00Z').getTime(),
+    target: 'neptune',
+    craft: 'voyager2',
+    durationSec: 16,
+    description: 'Passing just 4,950 km above Neptune\'s azure atmosphere, Voyager 2 images the Great Dark Spot and discovers active liquid-nitrogen geysers on moon Triton, completing the planetary Grand Tour.'
+  },
+  {
+    id: 'pale-blue-dot',
+    title: 'The "Pale Blue Dot" Family Portrait',
+    subtitle: '6.06 Billion km (40.5 AU) • February 14, 1990',
+    dateStr: '1990-02-14T00:00:00Z',
+    timeMs: new Date('1990-02-14T00:00:00Z').getTime(),
+    target: 'voyager1',
+    craft: 'voyager1',
+    durationSec: 16,
+    description: 'Conceived by Carl Sagan, Voyager 1 turns its cameras back across the abyss to capture Earth as a fragile speck of blue dust suspended in a sunbeam, before its cameras are turned off forever.'
+  },
+  {
+    id: 'heliopause',
+    title: 'Crossing into Interstellar Space',
+    subtitle: '121.6 AU from the Sun • August 25, 2012',
+    dateStr: '2012-08-25T00:00:00Z',
+    timeMs: new Date('2012-08-25T00:00:00Z').getTime(),
+    target: 'voyager1',
+    craft: 'voyager1',
+    durationSec: 16,
+    description: 'Voyager 1 punches through the heliopause into true interstellar space—the first human-made artifact to leave the Sun\'s magnetic bubble, registering the roar of galactic cosmic rays.'
+  },
+  {
+    id: 'present',
+    title: 'Deep Interstellar Journey into Eternity',
+    subtitle: '166+ AU from Earth • Present Day',
+    dateStr: '2026-11-18T00:00:00Z',
+    timeMs: new Date('2026-11-18T00:00:00Z').getTime(),
+    target: 'voyager1',
+    craft: 'voyager1',
+    durationSec: 18,
+    description: 'Continuing across the stars carrying the Golden Record, both Voyagers transmit daily telemetry back to Earth via NASA Deep Space Network, destined to outlive our solar system.'
+  }
+];
 
 interface SimulationContextType extends SimulationState {
   // Trajectory datasets
@@ -77,6 +169,18 @@ interface SimulationContextType extends SimulationState {
   toggleEventMarkers: () => void;
   toggleCelestialLabels: () => void;
   setSelectedEvent: (event: MissionEvent | null) => void;
+
+  // Dialog / Modal visibility state (suppresses 3D labels when open)
+  setIsModalOpen: (open: boolean) => void;
+  registerModal: (id: string, isOpen: boolean) => void;
+
+  // Cinematic Tour Controls
+  tourStages: TourStage[];
+  startCinematicTour: () => void;
+  stopCinematicTour: () => void;
+  nextTourStage: () => void;
+  prevTourStage: () => void;
+  setTourStage: (index: number) => void;
 }
 
 const SimulationContext = createContext<SimulationContextType | null>(null);
@@ -324,6 +428,71 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }, []);
 
+  // Dialog / Modal visibility state (suppresses 3D labels when open)
+  const [modalStack, setModalStack] = useState<Set<string>>(new Set());
+  const [isModalOpenManual, setIsModalOpenManual] = useState<boolean>(false);
+
+  const registerModal = useCallback((id: string, isOpen: boolean) => {
+    setModalStack(prev => {
+      const next = new Set(prev);
+      if (isOpen) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }, []);
+
+  const setIsModalOpen = useCallback((open: boolean) => {
+    setIsModalOpenManual(open);
+  }, []);
+
+  const isModalOpen = modalStack.size > 0 || isModalOpenManual;
+
+  // Cinematic Tour State
+  const [isCinematicTour, setIsCinematicTour] = useState<boolean>(false);
+  const [tourStageIndex, setTourStageIndex] = useState<number>(0);
+
+  const applyTourStage = useCallback((index: number) => {
+    const stage = CINEMATIC_TOUR_STAGES[index];
+    if (!stage) return;
+    setIsPlaying(false);
+    setCurrentTimeMs(stage.timeMs);
+    setSelectedSpacecraft(stage.craft);
+    setCameraTarget(stage.target);
+    setIsFollowingSpacecraft(stage.target === 'voyager1' || stage.target === 'voyager2');
+  }, []);
+
+  const startCinematicTour = useCallback(() => {
+    setIsCinematicTour(true);
+    setTourStageIndex(0);
+    applyTourStage(0);
+  }, [applyTourStage]);
+
+  const stopCinematicTour = useCallback(() => {
+    setIsCinematicTour(false);
+  }, []);
+
+  const setTourStage = useCallback((index: number) => {
+    const clamped = Math.max(0, Math.min(CINEMATIC_TOUR_STAGES.length - 1, index));
+    setTourStageIndex(clamped);
+    applyTourStage(clamped);
+  }, [applyTourStage]);
+
+  const nextTourStage = useCallback(() => {
+    setTourStageIndex(prev => {
+      const next = (prev + 1) % CINEMATIC_TOUR_STAGES.length;
+      applyTourStage(next);
+      return next;
+    });
+  }, [applyTourStage]);
+
+  const prevTourStage = useCallback(() => {
+    setTourStageIndex(prev => {
+      const next = (prev - 1 + CINEMATIC_TOUR_STAGES.length) % CINEMATIC_TOUR_STAGES.length;
+      applyTourStage(next);
+      return next;
+    });
+  }, [applyTourStage]);
+
   const toggleVoyager1Trajectory = useCallback(() => setShowVoyager1Trajectory(v => !v), []);
   const toggleVoyager2Trajectory = useCallback(() => setShowVoyager2Trajectory(v => !v), []);
   const togglePlanetaryOrbits = useCallback(() => setShowPlanetaryOrbits(v => !v), []);
@@ -354,6 +523,17 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     showEventMarkers,
     showCelestialLabels,
     selectedEvent,
+    isModalOpen,
+    setIsModalOpen,
+    registerModal,
+    isCinematicTour,
+    tourStageIndex,
+    tourStages: CINEMATIC_TOUR_STAGES,
+    startCinematicTour,
+    stopCinematicTour,
+    nextTourStage,
+    prevTourStage,
+    setTourStage,
     v1Current,
     v2Current,
     v1TravelledPath,

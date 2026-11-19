@@ -9,7 +9,8 @@ import {
   Menu, 
   X, 
   Camera,
-  Search
+  Search,
+  Sparkles
 } from 'lucide-react';
 import { useSimulation } from '../../context/SimulationContext';
 import { CameraFocusTarget } from '../../types/simulation';
@@ -66,7 +67,11 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
     togglePlanetaryOrbits,
     toggleHeliosphereBoundaries,
     toggleEventMarkers,
-    toggleCelestialLabels
+    toggleCelestialLabels,
+    registerModal,
+    isCinematicTour,
+    startCinematicTour,
+    stopCinematicTour
   } = useSimulation();
 
   const [showLayers, setShowLayers] = useState(false);
@@ -77,6 +82,19 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
 
   const searchRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Register all dropdowns and menus with the modal system to suppress 3D HTML labels
+  useEffect(() => {
+    registerModal('nav-layers', showLayers);
+  }, [showLayers, registerModal]);
+
+  useEffect(() => {
+    registerModal('nav-search', isSearchOpen);
+  }, [isSearchOpen, registerModal]);
+
+  useEffect(() => {
+    registerModal('nav-mobile', showMobileMenu);
+  }, [showMobileMenu, registerModal]);
 
   // Close search dropdown on outside click
   useEffect(() => {
@@ -394,6 +412,20 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
           )}
         </div>
 
+        {/* Cinematic Grand Tour */}
+        <button
+          onClick={isCinematicTour ? stopCinematicTour : startCinematicTour}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono transition-all cursor-pointer ${
+            isCinematicTour
+              ? 'bg-sky-500/25 border border-sky-400 text-sky-200 shadow-[0_0_15px_rgba(56,189,248,0.3)] animate-pulse'
+              : 'bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white'
+          }`}
+          title="Autopilot Cinematic Grand Tour (Automatic flight through all historic milestones)"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-sky-400" />
+          <span className="hidden sm:inline">Tour</span>
+        </button>
+
         {/* Golden Record */}
         <button
           onClick={onOpenGoldenRecord}
@@ -490,6 +522,20 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
               >
                 <Camera className="w-3.5 h-3.5 text-sky-400" />
                 <span>Free Roam Camera</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowMobileMenu(false);
+                  if (isCinematicTour) stopCinematicTour();
+                  else startCinematicTour();
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-colors text-xs w-full mt-1 justify-center cursor-pointer ${
+                  isCinematicTour ? 'bg-sky-500/30 text-sky-200 border border-sky-400/60 font-semibold' : 'bg-sky-500/10 text-sky-300 border border-sky-500/20'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-sky-400" />
+                <span>{isCinematicTour ? 'Exit Cinematic Tour' : 'Autopilot Grand Tour'}</span>
               </button>
             </>
           )}

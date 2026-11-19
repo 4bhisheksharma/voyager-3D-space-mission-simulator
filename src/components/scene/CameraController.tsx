@@ -22,7 +22,8 @@ export const CameraController: React.FC<CameraControllerProps> = ({ controlsRef,
     isFollowingSpacecraft, 
     v1Current, 
     v2Current,
-    currentTimeMs 
+    currentTimeMs,
+    isCinematicTour 
   } = useSimulation();
 
   const desiredCamPos = useRef(new THREE.Vector3(0, 35, 55));
@@ -30,6 +31,7 @@ export const CameraController: React.FC<CameraControllerProps> = ({ controlsRef,
   const lastTarget = useRef<string>('overview');
   const isTransitioning = useRef<boolean>(false);
   const isUserInteracting = useRef<boolean>(false);
+  const cinematicOrbitAngle = useRef<number>(0);
 
   // Cinematic Prologue: Slowly zoom out from radiant Sun to full Solar System on load
   const isIntroActive = useRef<boolean>(true);
@@ -196,6 +198,30 @@ export const CameraController: React.FC<CameraControllerProps> = ({ controlsRef,
     }
 
     desiredTarget.current.copy(_scratchTarget);
+
+    // 3. CINEMATIC AUTOPILOT TOUR: Majestic orbital sweep around each milestone target
+    if (isCinematicTour) {
+      isIntroActive.current = false;
+      cinematicOrbitAngle.current += delta * 0.06;
+
+      const isMacro = cameraTarget === 'overview';
+      const rad = isMacro ? 55 : Math.max(0.12, offsetDistance * 1.45);
+      const elev = isMacro ? 35 : offsetDistance * 0.45;
+
+      const camX = _scratchTarget.x + Math.sin(cinematicOrbitAngle.current) * rad;
+      const camY = _scratchTarget.y + Math.sin(cinematicOrbitAngle.current * 0.4) * (offsetDistance * 0.25) + elev;
+      const camZ = _scratchTarget.z + Math.cos(cinematicOrbitAngle.current) * rad;
+
+      desiredCamPos.current.set(camX, camY, camZ);
+
+      if (!isUserInteracting.current) {
+        const lerpFactor = 1.0 - Math.exp(-3.2 * delta);
+        camera.position.lerp(desiredCamPos.current, lerpFactor);
+        controlsRef.current.target.lerp(_scratchTarget, lerpFactor);
+      }
+      controlsRef.current.update();
+      return;
+    }
 
     // Target changed: initiate smooth glide to new target
     if (lastTarget.current !== cameraTarget) {

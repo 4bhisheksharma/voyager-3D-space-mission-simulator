@@ -20,7 +20,7 @@ export const TrajectoryPath: React.FC<TrajectoryPathProps> = ({
   visible,
   events
 }) => {
-  const { jumpToEvent, showEventMarkers, selectedEvent } = useSimulation();
+  const { jumpToEvent, showEventMarkers, selectedEvent, isModalOpen, isCinematicTour } = useSimulation();
   const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
 
   const isV1 = id === 'voyager1';
@@ -113,8 +113,8 @@ export const TrajectoryPath: React.FC<TrajectoryPathProps> = ({
                 />
               </mesh>
 
-              {/* Marker Label ONLY shown on hover or when selected to prevent screen clutter */}
-              {(isHovered || isSelected) && (
+              {/* Marker Label ONLY shown on hover or when selected, and hidden when dialogs are open */}
+              {(isHovered || isSelected) && !isModalOpen && !isCinematicTour && (
                 <Html
                   position={[0, 0.035, 0]}
                   center

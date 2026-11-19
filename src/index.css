@@ -31,3 +31,12 @@
   background: rgba(71, 85, 105, 1);
 }
 
+/* Suppress all Drei 3D HTML labels and overlays when any dialog/modal is open */
+[data-modal-open="true"] .drei-html,
+[data-modal-open="true"] div[style*="position: absolute"][style*="transform"] {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+

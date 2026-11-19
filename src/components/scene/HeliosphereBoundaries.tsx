@@ -4,7 +4,7 @@ import { Html } from '@react-three/drei';
 import { useSimulation } from '../../context/SimulationContext';
 
 export const HeliosphereBoundaries: React.FC = () => {
-  const { showHeliosphereBoundaries } = useSimulation();
+  const { showHeliosphereBoundaries, isModalOpen, isCinematicTour } = useSimulation();
 
   const distanceRings = useMemo(() => [
     { radius: 1, label: '1 AU' },
@@ -37,17 +37,19 @@ export const HeliosphereBoundaries: React.FC = () => {
               />
             </mesh>
 
-            {/* Minimal distance mark - fixed screen size */}
-            <Html
-              position={[ring.radius, 0, 0]}
-              style={{ pointerEvents: 'none', userSelect: 'none' }}
-            >
-              <span className={`text-[8px] font-mono tracking-widest whitespace-nowrap pl-1 ${
-                isBoundary ? 'text-sky-300 font-semibold' : 'text-zinc-400'
-              }`}>
-                {ring.label}
-              </span>
-            </Html>
+            {/* Minimal distance mark - hidden when any dialog or cinematic tour is open */}
+            {!isModalOpen && !isCinematicTour && (
+              <Html
+                position={[ring.radius, 0, 0]}
+                style={{ pointerEvents: 'none', userSelect: 'none' }}
+              >
+                <span className={`text-[8px] font-mono tracking-widest whitespace-nowrap pl-1 ${
+                  isBoundary ? 'text-sky-300 font-semibold' : 'text-zinc-400'
+                }`}>
+                  {ring.label}
+                </span>
+              </Html>
+            )}
           </group>
         );
       })}

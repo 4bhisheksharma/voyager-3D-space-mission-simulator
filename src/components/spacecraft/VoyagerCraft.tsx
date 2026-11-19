@@ -20,7 +20,9 @@ export const VoyagerCraft: React.FC<VoyagerCraftProps> = ({ id, point, isSelecte
     setIsFollowingSpacecraft, 
     showCelestialLabels, 
     cameraTarget,
-    currentTimeMs
+    currentTimeMs,
+    isModalOpen,
+    isCinematicTour
   } = useSimulation();
 
   // Load NASA VTAD 3D model
@@ -91,9 +93,9 @@ export const VoyagerCraft: React.FC<VoyagerCraftProps> = ({ id, point, isSelecte
       {/* 
         Fixed screen-pixel label without distanceFactor:
         Never blows up when zooming in! 
-        Hidden when focused on this craft or pre-launch to keep Earth clean.
+        Hidden when focused on this craft, pre-launch, or when any dialog is open.
       */}
-      {showCelestialLabels && !isFocused && !isPreLaunch && (
+      {showCelestialLabels && !isFocused && !isPreLaunch && !isModalOpen && !isCinematicTour && (
         <Html
           position={[0, 0.08, 0]}
           center

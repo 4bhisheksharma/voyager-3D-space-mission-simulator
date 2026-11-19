@@ -18,7 +18,14 @@ interface PlanetMeshProps {
 export const PlanetMesh: React.FC<PlanetMeshProps> = ({ body, jd }) => {
   const meshRef = useRef<THREE.Group>(null);
   const rotGroupRef = useRef<THREE.Group>(null);
-  const { setCameraTarget, showCelestialLabels, cameraTarget, optimizationMode } = useSimulation();
+  const { 
+    setCameraTarget, 
+    showCelestialLabels, 
+    cameraTarget, 
+    optimizationMode,
+    isModalOpen,
+    isCinematicTour 
+  } = useSimulation();
 
   const isSun = body.id === 'sun';
   const isSelected = cameraTarget === body.id;
@@ -194,9 +201,9 @@ export const PlanetMesh: React.FC<PlanetMeshProps> = ({ body, jd }) => {
       {/* 
         Fixed screen-pixel label without distanceFactor:
         Never blows up when zooming in! 
-        Hidden when focused on this body so it never obscures the 3D model.
+        Hidden when focused on this body or when any dialog is open so it never obscures dialogs or the 3D model.
       */}
-      {showCelestialLabels && !isSelected && (
+      {showCelestialLabels && !isSelected && !isModalOpen && !isCinematicTour && (
         <Html
           position={[0, visualRadius * (body.hasRings ? 2.1 : 1.3) + 0.015, 0]}
           center
