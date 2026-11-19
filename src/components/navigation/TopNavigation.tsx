@@ -75,7 +75,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
   };
 
   return (
-    <header className="absolute top-0 inset-x-0 z-40 h-11 px-3 sm:px-4 flex items-center justify-between bg-black/80 backdrop-blur-md border-b border-white/10 select-none">
+    <header className="absolute top-0 inset-x-0 z-40 h-11 px-3 sm:px-4 flex items-center justify-between bg-zinc-950/85 backdrop-blur-xl border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.6)] select-none">
       {/* Left: Brand & Probe Switcher */}
       <div className="flex items-center gap-2 sm:gap-4">
         <div
@@ -89,29 +89,29 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
         </div>
 
         {/* Minimal Probe Switcher */}
-        <div className="flex items-center bg-white/5 p-0.5 rounded border border-white/10 text-[11px] font-mono">
+        <div className="flex items-center bg-white/5 p-0.5 rounded-lg border border-white/10 text-[11px] font-mono">
           <button
             onClick={() => handleSelectSpacecraft('voyager1')}
-            className={`px-2 py-0.5 rounded transition-colors cursor-pointer flex items-center gap-1.5 ${
+            className={`px-2 py-0.5 rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
               selectedSpacecraft === 'voyager1'
-                ? 'bg-emerald-500/20 text-emerald-300 font-semibold'
+                ? 'bg-emerald-500/25 text-emerald-300 font-semibold shadow-[0_0_10px_rgba(52,211,153,0.3)]'
                 : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]" />
             <span>V1</span>
             {v1Current && <span className="hidden lg:inline text-[10px] text-zinc-400">{v1Current.dist.toFixed(0)}AU</span>}
           </button>
 
           <button
             onClick={() => handleSelectSpacecraft('voyager2')}
-            className={`px-2 py-0.5 rounded transition-colors cursor-pointer flex items-center gap-1.5 ${
+            className={`px-2 py-0.5 rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
               selectedSpacecraft === 'voyager2'
-                ? 'bg-amber-500/20 text-amber-300 font-semibold'
+                ? 'bg-amber-500/25 text-amber-300 font-semibold shadow-[0_0_10px_rgba(251,191,36,0.3)]'
                 : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_#fbbf24]" />
             <span>V2</span>
             {v2Current && <span className="hidden lg:inline text-[10px] text-zinc-400">{v2Current.dist.toFixed(0)}AU</span>}
           </button>

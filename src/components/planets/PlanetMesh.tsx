@@ -7,6 +7,8 @@ import { getPlanetPositionAU } from '../../utils/astronomy';
 import { getPlanetTexture, getRingsTexture } from '../../utils/planetTextures';
 import { useSimulation } from '../../context/SimulationContext';
 import { PlanetGLBModel } from './PlanetGLBModel';
+import { AtmosphereGlow } from './AtmosphereGlow';
+import { SolarAtmosphere } from './SolarAtmosphere';
 
 interface PlanetMeshProps {
   body: CelestialBodyData;
@@ -102,18 +104,8 @@ export const PlanetMesh: React.FC<PlanetMeshProps> = ({ body, jd }) => {
               </mesh>
             )}
 
-            {/* Subtle solar corona */}
-            <mesh scale={[1.2, 1.2, 1.2]}>
-              <sphereGeometry args={[visualRadius, 24, 24]} />
-              <meshBasicMaterial
-                color="#f59e0b"
-                transparent
-                opacity={0.2}
-                side={THREE.BackSide}
-                blending={THREE.AdditiveBlending}
-              />
-            </mesh>
-            <pointLight color="#fffaf0" intensity={3.0} distance={150} decay={0.6} />
+            {/* Radiant Solar Atmosphere & Corona */}
+            <SolarAtmosphere visualRadius={visualRadius} />
           </group>
         ) : (
           // Planetary Bodies
@@ -138,20 +130,6 @@ export const PlanetMesh: React.FC<PlanetMeshProps> = ({ body, jd }) => {
                 <sphereGeometry args={[visualRadius, 32, 32]} />
                 <meshStandardMaterial map={texture} roughness={0.65} metalness={0.05} />
 
-                {/* Earth subtle atmospheric rim */}
-                {body.id === 'earth' && (
-                  <mesh scale={[1.06, 1.06, 1.06]}>
-                    <sphereGeometry args={[visualRadius, 24, 24]} />
-                    <meshBasicMaterial
-                      color="#38bdf8"
-                      transparent
-                      opacity={0.2}
-                      blending={THREE.AdditiveBlending}
-                      side={THREE.BackSide}
-                    />
-                  </mesh>
-                )}
-
                 {/* Procedural rings for Saturn when in procedural fallback */}
                 {body.hasRings && ringsTexture && (
                   <mesh rotation={[Math.PI / 2, 0, 0]}>
@@ -171,6 +149,29 @@ export const PlanetMesh: React.FC<PlanetMeshProps> = ({ body, jd }) => {
                   </mesh>
                 )}
               </mesh>
+            )}
+
+            {/* Luminous Planetary Atmosphere Scattering Halos */}
+            {body.id === 'earth' && (
+              <AtmosphereGlow radius={visualRadius} color="#38bdf8" scale={1.08} power={2.8} intensity={1.15} />
+            )}
+            {body.id === 'venus' && (
+              <AtmosphereGlow radius={visualRadius} color="#fde047" scale={1.06} power={3.4} intensity={0.7} />
+            )}
+            {body.id === 'jupiter' && (
+              <AtmosphereGlow radius={visualRadius} color="#fbbf24" scale={1.035} power={3.8} intensity={0.55} />
+            )}
+            {body.id === 'saturn' && (
+              <AtmosphereGlow radius={visualRadius} color="#fef08a" scale={1.035} power={3.8} intensity={0.5} />
+            )}
+            {body.id === 'uranus' && (
+              <AtmosphereGlow radius={visualRadius} color="#22d3ee" scale={1.06} power={3.0} intensity={0.8} />
+            )}
+            {body.id === 'neptune' && (
+              <AtmosphereGlow radius={visualRadius} color="#60a5fa" scale={1.06} power={3.0} intensity={0.85} />
+            )}
+            {body.id === 'mars' && (
+              <AtmosphereGlow radius={visualRadius} color="#fb7185" scale={1.04} power={4.5} intensity={0.4} />
             )}
 
             {/* Minimal selection ring */}

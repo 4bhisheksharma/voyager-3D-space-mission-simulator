@@ -1,6 +1,6 @@
 import React, { useRef, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Stars } from '@react-three/drei';
+import { OrbitControls } from '@react-three/drei';
 import { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { useSimulation } from '../../context/SimulationContext';
 import { unixMsToJulianDate } from '../../utils/astronomy';
@@ -11,6 +11,7 @@ import { VoyagerCraft } from '../spacecraft/VoyagerCraft';
 import { TrajectoryPath } from '../trajectory/TrajectoryPath';
 import { HeliosphereBoundaries } from './HeliosphereBoundaries';
 import { CameraController } from './CameraController';
+import { CosmicStarfield } from './CosmicStarfield';
 
 export const SolarSystemScene: React.FC = () => {
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
@@ -36,11 +37,15 @@ export const SolarSystemScene: React.FC = () => {
         camera={{ position: [0, 35, 55], fov: 42, near: 0.005, far: 3000 }}
         gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
       >
-        <color attach="background" args={['#010308']} />
+        <color attach="background" args={['#01030a']} />
 
-        {/* Ambient & Hemisphere Lighting for clean PBR material rendering */}
-        <ambientLight intensity={0.5} />
-        <hemisphereLight args={['#1e293b', '#020617', 0.4]} />
+        {/* 
+          Astronomical Lighting:
+          Subtle ambient so celestial night-sides have realistic shadow depth,
+          allowing the radiant Sun point-light to create dramatic spherical 3D shading.
+        */}
+        <ambientLight intensity={0.14} />
+        <hemisphereLight args={['#0f172a', '#020617', 0.16]} />
 
         {/* Orbit Controls with Free Roam, Cursor Zoom & Pan */}
         <OrbitControls
@@ -59,20 +64,12 @@ export const SolarSystemScene: React.FC = () => {
         {/* Camera lerp controller */}
         <CameraController controlsRef={controlsRef} jd={jd} />
 
-        {/* Starfield */}
-        <Stars
-          radius={400}
-          depth={100}
-          count={5000}
-          factor={3}
-          saturation={0.2}
-          fade
-          speed={0.2}
-        />
+        {/* Deep Cosmic Starfield & Nebula Atmosphere */}
+        <CosmicStarfield />
 
         {/* Subtle Ecliptic Reference Plane */}
         <gridHelper
-          args={[200, 50, '#1e293b', '#0b1120']}
+          args={[200, 50, '#1e293b', '#070d19']}
           position={[0, -0.005, 0]}
         />
 

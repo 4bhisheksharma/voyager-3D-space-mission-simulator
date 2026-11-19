@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import * as THREE from 'three';
-import { Html } from '@react-three/drei';
+import { Html, Line } from '@react-three/drei';
 import { SpacecraftId, TrajectoryPoint, MissionEvent } from '../../types/simulation';
 import { useSimulation } from '../../context/SimulationContext';
 import { interpolateTrajectory } from '../../utils/astronomy';
@@ -25,49 +25,20 @@ export const TrajectoryPath: React.FC<TrajectoryPathProps> = ({
 
   const isV1 = id === 'voyager1';
   const primaryColor = isV1 ? '#34d399' : '#fbbf24';
-  const faintColor = isV1 ? '#064e3b' : '#78350f';
+  const faintColor = isV1 ? '#059669' : '#d97706';
 
-  // Full future/overall trajectory line
-  const fullGeometry = useMemo(() => {
-    if (!visible || fullData.length === 0) return null;
-    const pts: THREE.Vector3[] = [];
-    const step = Math.max(1, Math.floor(fullData.length / 800));
+  // Full future/overall trajectory points
+  const fullPoints = useMemo<[number, number, number][]>(() => {
+    if (!visible || fullData.length === 0) return [];
+    const pts: [number, number, number][] = [];
+    const step = Math.max(1, Math.floor(fullData.length / 600));
     for (let i = 0; i < fullData.length; i += step) {
-      pts.push(new THREE.Vector3(fullData[i].x, fullData[i].y, fullData[i].z));
+      pts.push([fullData[i].x, fullData[i].y, fullData[i].z]);
     }
     const last = fullData[fullData.length - 1];
-    pts.push(new THREE.Vector3(last.x, last.y, last.z));
-    return new THREE.BufferGeometry().setFromPoints(pts);
+    pts.push([last.x, last.y, last.z]);
+    return pts;
   }, [visible, fullData]);
-
-  // Travelled path geometry up to current date
-  const travelledGeometry = useMemo(() => {
-    if (!visible || travelledPath.length < 2) return null;
-    const pts = travelledPath.map(p => new THREE.Vector3(p[0], p[1], p[2]));
-    return new THREE.BufferGeometry().setFromPoints(pts);
-  }, [visible, travelledPath]);
-
-  const fullLine = useMemo(() => {
-    if (!fullGeometry) return null;
-    const mat = new THREE.LineBasicMaterial({
-      color: faintColor,
-      transparent: true,
-      opacity: 0.25,
-      linewidth: 1
-    });
-    return new THREE.Line(fullGeometry, mat);
-  }, [fullGeometry, faintColor]);
-
-  const travelledLine = useMemo(() => {
-    if (!travelledGeometry) return null;
-    const mat = new THREE.LineBasicMaterial({
-      color: primaryColor,
-      transparent: true,
-      opacity: 0.85,
-      linewidth: 2
-    });
-    return new THREE.Line(travelledGeometry, mat);
-  }, [travelledGeometry, primaryColor]);
 
   // Event marker coordinates
   const spacecraftEvents = useMemo(() => {
@@ -90,11 +61,27 @@ export const TrajectoryPath: React.FC<TrajectoryPathProps> = ({
 
   return (
     <group name={`trajectory-${id}`}>
-      {/* 1. Full trajectory line */}
-      {fullLine && <primitive object={fullLine} />}
+      {/* 1. Full predictive trajectory guide */}
+      {fullPoints.length > 1 && (
+        <Line
+          points={fullPoints}
+          color={faintColor}
+          lineWidth={1.0}
+          transparent
+          opacity={0.35}
+        />
+      )}
 
-      {/* 2. Progressively travelled line */}
-      {travelledLine && <primitive object={travelledLine} />}
+      {/* 2. Progressively travelled illuminated trajectory */}
+      {travelledPath.length > 1 && (
+        <Line
+          points={travelledPath}
+          color={primaryColor}
+          lineWidth={2.2}
+          transparent
+          opacity={0.92}
+        />
+      )}
 
       {/* 3. Event markers along trajectory */}
       {showEventMarkers &&

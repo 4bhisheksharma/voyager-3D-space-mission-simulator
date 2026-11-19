@@ -23,15 +23,16 @@ export const HeliosphereBoundaries: React.FC = () => {
     <group name="heliosphere-boundaries">
       {/* Concentric distance rings - razor-thin scientific reference lines */}
       {distanceRings.map(ring => {
-        const delta = Math.max(0.004, ring.radius * 0.0015);
+        const isBoundary = ring.radius >= 94;
+        const delta = Math.max(0.005, ring.radius * 0.0018);
         return (
           <group key={ring.radius}>
             <mesh rotation={[-Math.PI / 2, 0, 0]}>
               <ringGeometry args={[ring.radius - delta, ring.radius + delta, 128]} />
               <meshBasicMaterial
-                color="#ffffff"
+                color={isBoundary ? '#38bdf8' : '#ffffff'}
                 transparent
-                opacity={ring.radius >= 94 ? 0.16 : 0.05}
+                opacity={isBoundary ? 0.35 : 0.15}
                 side={THREE.DoubleSide}
               />
             </mesh>
@@ -41,7 +42,9 @@ export const HeliosphereBoundaries: React.FC = () => {
               position={[ring.radius, 0, 0]}
               style={{ pointerEvents: 'none', userSelect: 'none' }}
             >
-              <span className="text-[8px] font-mono tracking-widest text-white/30 whitespace-nowrap pl-1">
+              <span className={`text-[8px] font-mono tracking-widest whitespace-nowrap pl-1 ${
+                isBoundary ? 'text-sky-300 font-semibold' : 'text-zinc-400'
+              }`}>
                 {ring.label}
               </span>
             </Html>
@@ -55,7 +58,7 @@ export const HeliosphereBoundaries: React.FC = () => {
         <meshBasicMaterial
           color="#38bdf8"
           transparent
-          opacity={0.02}
+          opacity={0.05}
           wireframe
           side={THREE.BackSide}
         />
