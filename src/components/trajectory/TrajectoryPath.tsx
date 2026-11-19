@@ -86,6 +86,10 @@ export const TrajectoryPath: React.FC<TrajectoryPathProps> = ({
       {/* 3. Event markers along trajectory */}
       {showEventMarkers &&
         spacecraftEvents.map(({ event, position }) => {
+          // Never render a 3D pin sphere over Earth for launch events, keeping Earth's 3D globe pristine
+          const isLaunch = event.category === 'launch' || event.id.includes('launch');
+          if (isLaunch) return null;
+
           const isSelected = selectedEvent?.id === event.id;
           const isHovered = hoveredEventId === event.id;
 
@@ -96,14 +100,14 @@ export const TrajectoryPath: React.FC<TrajectoryPathProps> = ({
               onPointerOver={(e) => { e.stopPropagation(); setHoveredEventId(event.id); }}
               onPointerOut={() => setHoveredEventId(null)}
             >
-              {/* Subtle 3D Pin */}
+              {/* Sleek NASA Navigation Waypoint Pin */}
               <mesh
                 onClick={(e) => {
                   e.stopPropagation();
                   jumpToEvent(event);
                 }}
               >
-                <sphereGeometry args={[isSelected ? 0.024 : 0.012, 12, 12]} />
+                <sphereGeometry args={[isSelected ? 0.007 : 0.0035, 16, 16]} />
                 <meshBasicMaterial
                   color={isSelected ? '#ffffff' : primaryColor}
                 />

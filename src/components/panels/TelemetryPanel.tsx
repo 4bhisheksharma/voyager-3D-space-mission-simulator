@@ -139,7 +139,7 @@ export const TelemetryPanel: React.FC<{ isOpen: boolean; onToggle: () => void }>
           <div className="flex flex-col gap-0.5">
             <span className="text-[10px] text-slate-400 uppercase tracking-widest">Status</span>
             <span className="text-xs font-bold text-sky-400 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
               OPERATIONAL
             </span>
             <span className="text-[11px] text-slate-300">NASA JPL Deep Space Network</span>

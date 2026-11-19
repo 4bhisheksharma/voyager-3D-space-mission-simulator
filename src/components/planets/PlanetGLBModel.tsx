@@ -12,11 +12,43 @@ export const PlanetGLBModel: React.FC<PlanetGLBModelProps> = ({ modelPath, targe
 
   const { cloned, scale } = useMemo(() => {
     const c = scene.clone();
+
+    // Traverse and configure all materials for high fidelity texture display
     c.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         const mesh = child as THREE.Mesh;
         mesh.castShadow = true;
         mesh.receiveShadow = true;
+
+        if (mesh.material) {
+          const rawMats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+          const clonedMats = rawMats.map((origMat) => {
+            const mat = origMat.clone();
+            if (mat instanceof THREE.MeshStandardMaterial) {
+              // Ensure pure white base so texture is never darkened
+              mat.color.set('#ffffff');
+              mat.roughness = Math.min(mat.roughness, 0.75);
+              mat.metalness = Math.min(mat.metalness, 0.05);
+
+              // Check if mesh represents planetary rings
+              const meshName = (mesh.name || '').toLowerCase();
+              const matName = (mat.name || '').toLowerCase();
+              if (meshName.includes('ring') || meshName.includes('circle') || matName.includes('ring')) {
+                mat.transparent = true;
+                mat.opacity = 0.88;
+                mat.side = THREE.DoubleSide;
+              }
+
+              if (mat.map) {
+                mat.map.colorSpace = THREE.SRGBColorSpace;
+                mat.map.needsUpdate = true;
+              }
+              mat.needsUpdate = true;
+            }
+            return mat;
+          });
+          mesh.material = Array.isArray(mesh.material) ? clonedMats : clonedMats[0];
+        }
       }
     });
 

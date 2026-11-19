@@ -10,16 +10,10 @@ interface CameraControllerProps {
   jd: number;
 }
 
-// Cubic ease-in-out curve for cinematic transitions
-function easeInOutCubic(x: number): number {
-  return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
-}
-
 export const CameraController: React.FC<CameraControllerProps> = ({ controlsRef, jd }) => {
   const { camera } = useThree();
   const { 
     cameraTarget, 
-    setCameraTarget, 
     isFollowingSpacecraft, 
     v1Current, 
     v2Current,
@@ -28,73 +22,40 @@ export const CameraController: React.FC<CameraControllerProps> = ({ controlsRef,
 
   const desiredCamPos = useRef(new THREE.Vector3(0, 35, 55));
   const desiredTarget = useRef(new THREE.Vector3(0, 0, 0));
-  const lastTarget = useRef<string>('');
+  const lastTarget = useRef<string>('overview');
+  const isTransitioning = useRef<boolean>(false);
+  const isUserInteracting = useRef<boolean>(false);
 
-  // Cinematic Prologue: Zoom out from radiant Sun to Earth
-  const isIntroActive = useRef(true);
-  const introElapsed = useRef(0);
-  const INTRO_DURATION = 3.6; // seconds
-
-  // Handle user interruptions to seamlessly cancel the intro sequence
+  // Detect user orbit/pan/zoom to pause auto-lerping so controls never fight the user
   useEffect(() => {
-    const handleUserInteraction = () => {
-      if (isIntroActive.current) {
-        isIntroActive.current = false;
-      }
+    const handleStart = () => {
+      isUserInteracting.current = true;
+      isTransitioning.current = false;
+    };
+    const handleEnd = () => {
+      isUserInteracting.current = false;
     };
 
-    window.addEventListener('pointerdown', handleUserInteraction, { passive: true });
-    window.addEventListener('wheel', handleUserInteraction, { passive: true });
+    window.addEventListener('pointerdown', handleStart, { passive: true });
+    window.addEventListener('pointerup', handleEnd, { passive: true });
+    window.addEventListener('wheel', handleStart, { passive: true });
     return () => {
-      window.removeEventListener('pointerdown', handleUserInteraction);
-      window.removeEventListener('wheel', handleUserInteraction);
+      window.removeEventListener('pointerdown', handleStart);
+      window.removeEventListener('pointerup', handleEnd);
+      window.removeEventListener('wheel', handleStart);
     };
   }, []);
 
   useFrame((_, delta) => {
     if (!controlsRef.current) return;
 
-    // 1. FREE CAMERA MODE: User has total freedom to pan, orbit, and zoomToCursor anywhere in space
+    // 1. FREE CAMERA MODE: Total freedom to pan, orbit, and zoom anywhere in space
     if (cameraTarget === 'free') {
-      isIntroActive.current = false;
       controlsRef.current.update();
       return;
     }
 
-    // 2. CINEMATIC INTRO SEQUENCE: Sun -> Earth
-    if (isIntroActive.current) {
-      introElapsed.current += delta;
-      const progress = Math.min(introElapsed.current / INTRO_DURATION, 1.0);
-      const ease = easeInOutCubic(progress);
-
-      const [ex, ey, ez] = getPlanetPositionAU('earth', jd);
-      const sunTarget = new THREE.Vector3(0, 0, 0);
-      const earthTarget = new THREE.Vector3(ex, ey, ez);
-
-      // Start: Close, warm framing of the Sun
-      const sunCamStart = new THREE.Vector3(0, 0.04, 0.22);
-      // End: Cinematic arrival framing of Earth poised for Voyager launch
-      const earthCamEnd = new THREE.Vector3(ex + 0.035, ey + 0.03, ez + 0.06);
-
-      // Interpolate target and camera position with an arc above the ecliptic plane
-      const currentTarget = new THREE.Vector3().lerpVectors(sunTarget, earthTarget, ease);
-      const currentCam = new THREE.Vector3().lerpVectors(sunCamStart, earthCamEnd, ease);
-      // Gentle vertical arc
-      currentCam.y += Math.sin(ease * Math.PI) * 0.08;
-
-      controlsRef.current.target.copy(currentTarget);
-      camera.position.copy(currentCam);
-      controlsRef.current.update();
-
-      if (progress >= 1.0) {
-        isIntroActive.current = false;
-        // Settle smoothly into Earth target
-        setCameraTarget('earth');
-      }
-      return;
-    }
-
-    // 3. TARGETED CAMERA FOCUS MODES
+    // 2. TARGETED CAMERA FOCUS MODES
     let newTarget = new THREE.Vector3(0, 0, 0);
     let offsetDistance = 0.2;
 
@@ -191,10 +152,15 @@ export const CameraController: React.FC<CameraControllerProps> = ({ controlsRef,
 
     desiredTarget.current.copy(newTarget);
 
-    // When camera target changes, initiate a smooth, subtle professional zoom framing
+    // Target changed: initiate smooth glide to new target
     if (lastTarget.current !== cameraTarget) {
       lastTarget.current = cameraTarget;
-      if (cameraTarget !== 'overview' && cameraTarget !== 'inner_solar_system') {
+      isTransitioning.current = true;
+      if (cameraTarget === 'overview') {
+        desiredCamPos.current.set(0, 35, 55);
+      } else if (cameraTarget === 'inner_solar_system') {
+        desiredCamPos.current.set(0, 2.2, 3.2);
+      } else {
         desiredCamPos.current.copy(newTarget).add(
           new THREE.Vector3(offsetDistance * 0.7, offsetDistance * 0.45, offsetDistance)
         );
@@ -203,14 +169,21 @@ export const CameraController: React.FC<CameraControllerProps> = ({ controlsRef,
       // Maintain continuous lock-on offset as spacecraft moves through space
       const camOffset = camera.position.clone().sub(controlsRef.current.target);
       desiredCamPos.current.copy(newTarget).add(camOffset);
+      isTransitioning.current = true;
     }
 
-    // Critically damped exponential lerp for buttery smooth 60fps camera movement
-    const lerpFactor = 1.0 - Math.exp(-6.0 * delta);
-    controlsRef.current.target.lerp(desiredTarget.current, lerpFactor);
-
-    if (cameraTarget !== 'overview' && (isFollowingSpacecraft || camera.position.distanceTo(desiredCamPos.current) > 0.001)) {
+    // Smooth exponential lerp
+    if (isTransitioning.current && !isUserInteracting.current) {
+      const lerpFactor = 1.0 - Math.exp(-5.0 * delta);
+      controlsRef.current.target.lerp(desiredTarget.current, lerpFactor);
       camera.position.lerp(desiredCamPos.current, lerpFactor);
+
+      if (
+        controlsRef.current.target.distanceTo(desiredTarget.current) < 0.001 &&
+        camera.position.distanceTo(desiredCamPos.current) < 0.005
+      ) {
+        isTransitioning.current = false;
+      }
     }
 
     controlsRef.current.update();

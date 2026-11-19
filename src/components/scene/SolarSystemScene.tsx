@@ -40,23 +40,23 @@ export const SolarSystemScene: React.FC = () => {
         <color attach="background" args={['#01030a']} />
 
         {/* 
-          Astronomical Lighting:
-          Subtle ambient so celestial night-sides have realistic shadow depth,
-          allowing the radiant Sun point-light to create dramatic spherical 3D shading.
+          Balanced NASA Mission Lighting:
+          Ambient illumination allows planet surface details (craters, clouds, rings)
+          to be clearly visible from any camera angle without dark washouts,
+          while preserving realistic spherical shadow depth.
         */}
-        <ambientLight intensity={0.14} />
-        <hemisphereLight args={['#0f172a', '#020617', 0.16]} />
+        <ambientLight intensity={0.38} />
+        <hemisphereLight args={['#38bdf8', '#020617', 0.22]} />
 
-        {/* Orbit Controls with Free Roam, Cursor Zoom & Pan */}
+        {/* Orbit Controls with Silky Smooth Glitch-Free Zoom & Pan */}
         <OrbitControls
           ref={controlsRef}
           enableDamping
-          dampingFactor={0.07}
-          minDistance={0.02}
-          maxDistance={800}
-          zoomSpeed={1.2}
+          dampingFactor={0.08}
+          minDistance={0.015}
+          maxDistance={850}
+          zoomSpeed={1.0}
           rotateSpeed={0.7}
-          zoomToCursor={true}
           screenSpacePanning={true}
           enablePan={true}
         />

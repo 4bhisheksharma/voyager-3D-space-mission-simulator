@@ -104,7 +104,7 @@ export const MissionHUD: React.FC = () => {
         onClick={() => setIsOpen(true)}
         className="absolute top-13 right-2 sm:right-4 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-950/85 hover:bg-zinc-900 border border-white/15 backdrop-blur-xl text-xs font-mono text-zinc-200 cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.6)] transition-all hover:scale-105 active:scale-95"
       >
-        <span className={`w-2 h-2 rounded-full ${dotColor} shadow-[0_0_8px_rgba(56,189,248,0.6)] animate-pulse`} />
+        <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
         <span className="font-semibold tracking-wider">{name}</span>
         {current && (
           <>
@@ -188,7 +188,7 @@ export const MissionHUD: React.FC = () => {
               <span>DSN CARRIER</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
               <span className="text-[9px] text-emerald-400/90 font-medium">LOCKED (70m SUB)</span>
             </div>
           </div>

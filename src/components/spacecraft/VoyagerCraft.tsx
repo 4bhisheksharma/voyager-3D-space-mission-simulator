@@ -71,16 +71,16 @@ export const VoyagerCraft: React.FC<VoyagerCraftProps> = ({ id, point, isSelecte
       {/* Fill lighting to illuminate the 3D model in deep space */}
       <pointLight color="#ffffff" intensity={2.0} distance={3} decay={1} />
 
-      {/* 3D Spacecraft Model - completely unobstructed and free from planet collision */}
-      <group onClick={handleClick}>
+      {/* 3D Spacecraft Model - visible in flight, or pre-launch only when specifically focused */}
+      <group onClick={handleClick} visible={!isPreLaunch || isFocused}>
         <primitive
           object={clonedScene}
-          scale={isPreLaunch ? [0.008, 0.008, 0.008] : [0.015, 0.015, 0.015]}
+          scale={isPreLaunch ? [0.006, 0.006, 0.006] : [0.015, 0.015, 0.015]}
           rotation={[0, Math.PI, 0]}
         />
 
-        {/* Minimal targeting ring when selected */}
-        {isSelected && (
+        {/* Minimal targeting ring when selected - only when in flight, never obscuring Earth pre-launch */}
+        {isSelected && !isPreLaunch && (
           <mesh rotation={[-Math.PI / 2, 0, 0]}>
             <ringGeometry args={[0.06, 0.064, 32]} />
             <meshBasicMaterial color={accentColor} side={THREE.DoubleSide} transparent opacity={0.6} />
@@ -91,9 +91,9 @@ export const VoyagerCraft: React.FC<VoyagerCraftProps> = ({ id, point, isSelecte
       {/* 
         Fixed screen-pixel label without distanceFactor:
         Never blows up when zooming in! 
-        Hidden when focused on this craft so it never obscures the 3D model.
+        Hidden when focused on this craft or pre-launch to keep Earth clean.
       */}
-      {showCelestialLabels && !isFocused && (
+      {showCelestialLabels && !isFocused && !isPreLaunch && (
         <Html
           position={[0, 0.08, 0]}
           center

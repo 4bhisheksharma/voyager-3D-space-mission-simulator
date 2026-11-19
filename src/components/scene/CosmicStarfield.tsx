@@ -1,15 +1,54 @@
 import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Stars } from '@react-three/drei';
 import * as THREE from 'three';
 
 export const CosmicStarfield: React.FC = () => {
   const pointsRef = useRef<THREE.Points>(null);
+  const bgStarsRef = useRef<THREE.Points>(null);
   const dustRef = useRef<THREE.Points>(null);
 
-  // Multi-spectral astronomical foreground stars (Class O, B, A, G, M)
-  const { starGeometry, dustGeometry } = useMemo(() => {
-    // 1. Spectral Stars
+  // Generate a smooth antialiased circular star disc texture
+  const circleTexture = useMemo(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 64;
+    canvas.height = 64;
+    const ctx = canvas.getContext('2d')!;
+
+    // Soft Gaussian-style radial gradient: pure white center fading softly to 0 at edge
+    const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gradient.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
+    gradient.addColorStop(0.2, 'rgba(255, 255, 255, 0.9)');
+    gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.4)');
+    gradient.addColorStop(0.8, 'rgba(255, 255, 255, 0.1)');
+    gradient.addColorStop(1.0, 'rgba(255, 255, 255, 0.0)');
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 64, 64);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.ClampToEdgeWrapping;
+    tex.wrapT = THREE.ClampToEdgeWrapping;
+    tex.needsUpdate = true;
+    return tex;
+  }, []);
+
+  // Multi-spectral astronomical foreground stars (Class O, B, A, G, M) + Background Stars
+  const { starGeometry, bgGeometry, dustGeometry } = useMemo(() => {
+    // 1. High-Density Background Stars (Circular)
+    const bgCount = 4500;
+    const bgPositions = new Float32Array(bgCount * 3);
+    for (let i = 0; i < bgCount; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(Math.random() * 2 - 1);
+      const r = 350 + Math.random() * 150;
+      bgPositions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      bgPositions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+      bgPositions[i * 3 + 2] = r * Math.cos(phi);
+    }
+    const bgGeo = new THREE.BufferGeometry();
+    bgGeo.setAttribute('position', new THREE.BufferAttribute(bgPositions, 3));
+
+    // 2. Spectral Foreground Stars (With real stellar temperatures)
     const starCount = 1200;
     const starPositions = new Float32Array(starCount * 3);
     const starColors = new Float32Array(starCount * 3);
@@ -42,7 +81,7 @@ export const CosmicStarfield: React.FC = () => {
     sGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
     sGeo.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
 
-    // 2. Cosmic Galactic Dust Lane
+    // 3. Cosmic Galactic Dust Lane
     const dustCount = 800;
     const dustPositions = new Float32Array(dustCount * 3);
     const dustColors = new Float32Array(dustCount * 3);
@@ -55,7 +94,6 @@ export const CosmicStarfield: React.FC = () => {
     ];
 
     for (let i = 0; i < dustCount; i++) {
-      // Concentrated along a diagonal galactic plane
       const angle = (Math.random() - 0.5) * Math.PI * 2;
       const r = 220 + Math.random() * 260;
       const height = (Math.random() - 0.5) * 60;
@@ -74,7 +112,7 @@ export const CosmicStarfield: React.FC = () => {
     dGeo.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
     dGeo.setAttribute('color', new THREE.BufferAttribute(dustColors, 3));
 
-    return { starGeometry: sGeo, dustGeometry: dGeo };
+    return { starGeometry: sGeo, bgGeometry: bgGeo, dustGeometry: dGeo };
   }, []);
 
   // Subtle slow cosmic rotation
@@ -82,31 +120,40 @@ export const CosmicStarfield: React.FC = () => {
     if (pointsRef.current) {
       pointsRef.current.rotation.y += delta * 0.003;
     }
+    if (bgStarsRef.current) {
+      bgStarsRef.current.rotation.y += delta * 0.0015;
+    }
     if (dustRef.current) {
-      dustRef.current.rotation.y += delta * 0.0015;
+      dustRef.current.rotation.y += delta * 0.001;
     }
   });
 
   return (
     <group>
-      {/* 1. Distant Starfield Dome */}
-      <Stars
-        radius={450}
-        depth={80}
-        count={5500}
-        factor={3.5}
-        saturation={0.4}
-        fade
-        speed={0.15}
-      />
+      {/* 1. Distant Background Circular Stars */}
+      <points ref={bgStarsRef} geometry={bgGeometry}>
+        <pointsMaterial
+          size={1.6}
+          map={circleTexture}
+          color="#cbd5e1"
+          transparent
+          opacity={0.7}
+          alphaTest={0.005}
+          sizeAttenuation
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+        />
+      </points>
 
-      {/* 2. Multi-Spectral Foreground Astronomical Stars */}
+      {/* 2. Multi-Spectral Circular Foreground Astronomical Stars */}
       <points ref={pointsRef} geometry={starGeometry}>
         <pointsMaterial
-          size={2.2}
+          size={2.6}
+          map={circleTexture}
           vertexColors
           transparent
-          opacity={0.85}
+          opacity={0.9}
+          alphaTest={0.005}
           sizeAttenuation
           blending={THREE.AdditiveBlending}
           depthWrite={false}
@@ -116,10 +163,12 @@ export const CosmicStarfield: React.FC = () => {
       {/* 3. Soft Cosmic Dust / Nebula Glow */}
       <points ref={dustRef} geometry={dustGeometry}>
         <pointsMaterial
-          size={14.0}
+          size={16.0}
+          map={circleTexture}
           vertexColors
           transparent
           opacity={0.25}
+          alphaTest={0.005}
           sizeAttenuation
           blending={THREE.AdditiveBlending}
           depthWrite={false}

@@ -205,7 +205,7 @@ export const PlaybackControls: React.FC = () => {
 
           {/* Time Readout with Glass Pill */}
           <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] sm:text-xs">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
             <span className="font-semibold text-white tracking-wider">{dateStr}</span>
             <span className="text-zinc-400">{timeStr}</span>
             <span className="text-zinc-600 hidden md:inline">•</span>
