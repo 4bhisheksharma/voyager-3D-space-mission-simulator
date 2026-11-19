@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { SimulationProvider, useSimulation } from './context/SimulationContext';
 import { SolarSystemScene } from './components/scene/SolarSystemScene';
 import { TopNavigation } from './components/navigation/TopNavigation';
 import { PlaybackControls } from './components/controls/PlaybackControls';
 import { MissionHUD } from './components/panels/MissionHUD';
-import { GoldenRecordModal } from './components/modals/GoldenRecordModal';
-import { ProjectInfoModal } from './components/modals/ProjectInfoModal';
 import { Loader2 } from 'lucide-react';
+
+// Lazy-load heavy modals on-demand to minimize initial bundle size and accelerate page boot
+const GoldenRecordModal = lazy(() =>
+  import('./components/modals/GoldenRecordModal').then(m => ({ default: m.GoldenRecordModal }))
+);
+const ProjectInfoModal = lazy(() =>
+  import('./components/modals/ProjectInfoModal').then(m => ({ default: m.ProjectInfoModal }))
+);
 
 const SimulationApp: React.FC = () => {
   const { isLoadingData } = useSimulation();
@@ -46,16 +52,21 @@ const SimulationApp: React.FC = () => {
       {/* 4. Sleek Bottom Playback Controls */}
       <PlaybackControls />
 
-      {/* 5. Modals */}
-      <GoldenRecordModal
-        isOpen={showGoldenRecord}
-        onClose={() => setShowGoldenRecord(false)}
-      />
-
-      <ProjectInfoModal
-        isOpen={showProjectInfo}
-        onClose={() => setShowProjectInfo(false)}
-      />
+      {/* 5. On-Demand Lazy Loaded Modals */}
+      <Suspense fallback={null}>
+        {showGoldenRecord && (
+          <GoldenRecordModal
+            isOpen={showGoldenRecord}
+            onClose={() => setShowGoldenRecord(false)}
+          />
+        )}
+        {showProjectInfo && (
+          <ProjectInfoModal
+            isOpen={showProjectInfo}
+            onClose={() => setShowProjectInfo(false)}
+          />
+        )}
+      </Suspense>
     </div>
   );
 };

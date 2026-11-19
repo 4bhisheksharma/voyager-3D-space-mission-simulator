@@ -10,6 +10,11 @@ interface CameraControllerProps {
   jd: number;
 }
 
+// Reusable static vectors to eliminate GC pressure in useFrame
+const _scratchTarget = new THREE.Vector3();
+const _scratchCam = new THREE.Vector3();
+const _scratchOffset = new THREE.Vector3();
+
 export const CameraController: React.FC<CameraControllerProps> = ({ controlsRef, jd }) => {
   const { camera } = useThree();
   const { 
@@ -76,15 +81,15 @@ export const CameraController: React.FC<CameraControllerProps> = ({ controlsRef,
           ? 4 * progress * progress * progress 
           : 1 - Math.pow(-2 * progress + 2, 3) / 2;
 
-        const currentCam = new THREE.Vector3().lerpVectors(
+        _scratchCam.lerpVectors(
           sunCamStart.current,
           overviewCamEnd.current,
           ease
         );
         // Gentle vertical lift arc
-        currentCam.y += Math.sin(ease * Math.PI) * 1.5;
+        _scratchCam.y += Math.sin(ease * Math.PI) * 1.5;
 
-        camera.position.copy(currentCam);
+        camera.position.copy(_scratchCam);
         controlsRef.current.target.set(0, 0, 0);
         controlsRef.current.update();
 
@@ -96,101 +101,101 @@ export const CameraController: React.FC<CameraControllerProps> = ({ controlsRef,
     }
 
     // 2. TARGETED CAMERA FOCUS MODES
-    let newTarget = new THREE.Vector3(0, 0, 0);
+    _scratchTarget.set(0, 0, 0);
     let offsetDistance = 0.2;
 
     switch (cameraTarget) {
       case 'overview':
-        newTarget.set(0, 0, 0);
+        _scratchTarget.set(0, 0, 0);
         desiredCamPos.current.set(0, 35, 55);
         break;
 
       case 'inner_solar_system':
-        newTarget.set(0, 0, 0);
+        _scratchTarget.set(0, 0, 0);
         desiredCamPos.current.set(0, 2.2, 3.2);
         break;
 
       case 'sun':
-        newTarget.set(0, 0, 0);
+        _scratchTarget.set(0, 0, 0);
         offsetDistance = 0.28;
         break;
 
       case 'earth': {
         const [px, py, pz] = getPlanetPositionAU('earth', jd);
-        newTarget.set(px, py, pz);
+        _scratchTarget.set(px, py, pz);
         offsetDistance = 0.07;
         break;
       }
 
       case 'mercury': {
         const [px, py, pz] = getPlanetPositionAU('mercury', jd);
-        newTarget.set(px, py, pz);
+        _scratchTarget.set(px, py, pz);
         offsetDistance = 0.045;
         break;
       }
 
       case 'venus': {
         const [px, py, pz] = getPlanetPositionAU('venus', jd);
-        newTarget.set(px, py, pz);
+        _scratchTarget.set(px, py, pz);
         offsetDistance = 0.065;
         break;
       }
 
       case 'mars': {
         const [px, py, pz] = getPlanetPositionAU('mars', jd);
-        newTarget.set(px, py, pz);
+        _scratchTarget.set(px, py, pz);
         offsetDistance = 0.055;
         break;
       }
 
       case 'jupiter': {
         const [px, py, pz] = getPlanetPositionAU('jupiter', jd);
-        newTarget.set(px, py, pz);
+        _scratchTarget.set(px, py, pz);
         offsetDistance = 0.26;
         break;
       }
 
       case 'saturn': {
         const [px, py, pz] = getPlanetPositionAU('saturn', jd);
-        newTarget.set(px, py, pz);
+        _scratchTarget.set(px, py, pz);
         offsetDistance = 0.32;
         break;
       }
 
       case 'uranus': {
         const [px, py, pz] = getPlanetPositionAU('uranus', jd);
-        newTarget.set(px, py, pz);
+        _scratchTarget.set(px, py, pz);
         offsetDistance = 0.22;
         break;
       }
 
       case 'neptune': {
         const [px, py, pz] = getPlanetPositionAU('neptune', jd);
-        newTarget.set(px, py, pz);
+        _scratchTarget.set(px, py, pz);
         offsetDistance = 0.16;
         break;
       }
 
       case 'voyager1': {
         const { position } = getSafeSpacecraftPosition('voyager1', v1Current, currentTimeMs);
-        newTarget.set(position[0], position[1], position[2]);
+        _scratchTarget.set(position[0], position[1], position[2]);
         offsetDistance = 0.10;
         break;
       }
 
       case 'voyager2': {
         const { position } = getSafeSpacecraftPosition('voyager2', v2Current, currentTimeMs);
-        newTarget.set(position[0], position[1], position[2]);
+        _scratchTarget.set(position[0], position[1], position[2]);
         offsetDistance = 0.10;
         break;
       }
 
       default:
-        newTarget.set(0, 0, 0);
+        _scratchTarget.set(0, 0, 0);
         break;
     }
 
-    desiredTarget.current.copy(newTarget);
+    desiredTarget.current.copy(_scratchTarget);
 
     // Target changed: initiate smooth glide to new target
     if (lastTarget.current !== cameraTarget) {
@@ -201,14 +206,13 @@ export const CameraController: React.FC<CameraControllerProps> = ({ controlsRef,
       } else if (cameraTarget === 'inner_solar_system') {
         desiredCamPos.current.set(0, 2.2, 3.2);
       } else {
-        desiredCamPos.current.copy(newTarget).add(
-          new THREE.Vector3(offsetDistance * 0.7, offsetDistance * 0.45, offsetDistance)
-        );
+        _scratchOffset.set(offsetDistance * 0.7, offsetDistance * 0.45, offsetDistance);
+        desiredCamPos.current.copy(_scratchTarget).add(_scratchOffset);
       }
     } else if (isFollowingSpacecraft && (cameraTarget === 'voyager1' || cameraTarget === 'voyager2')) {
       // Maintain continuous lock-on offset as spacecraft moves through space
-      const camOffset = camera.position.clone().sub(controlsRef.current.target);
-      desiredCamPos.current.copy(newTarget).add(camOffset);
+      _scratchOffset.copy(camera.position).sub(controlsRef.current.target);
+      desiredCamPos.current.copy(_scratchTarget).add(_scratchOffset);
       isTransitioning.current = true;
     }
 

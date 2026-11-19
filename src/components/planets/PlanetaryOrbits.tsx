@@ -16,15 +16,19 @@ const ORBIT_COLORS: Record<string, string> = {
   neptune: '#60a5fa'  // Electric cobalt sapphire
 };
 
-export const PlanetaryOrbits: React.FC<{ jd: number }> = ({ jd }) => {
+// Reference mid-mission epoch (~1980 AD) - Keplerian orbital ellipses precess over Julian millennia
+const REFERENCE_ORBIT_JD = 2444000;
+
+export const PlanetaryOrbits: React.FC<{ jd?: number }> = () => {
   const { showPlanetaryOrbits } = useSimulation();
 
+  // Calculated ONCE and cached in GPU VRAM with zero per-frame CPU recalculation or geometry rebuilds
   const orbitLines = useMemo(() => {
     if (!showPlanetaryOrbits) return [];
 
     return CELESTIAL_BODIES.filter(b => b.id !== 'sun').map(body => {
-      // 240 curve segments for a buttery-smooth closed orbit
-      const curvePoints = getPlanetOrbitCurve(body.id, jd, 240);
+      // 180 curve segments provide buttery-smooth closed elliptical paths while saving buffer memory
+      const curvePoints = getPlanetOrbitCurve(body.id, REFERENCE_ORBIT_JD, 180);
       const points = [...curvePoints, curvePoints[0]];
       const color = ORBIT_COLORS[body.id] || body.color || '#38bdf8';
 
@@ -34,7 +38,7 @@ export const PlanetaryOrbits: React.FC<{ jd: number }> = ({ jd }) => {
         color
       };
     });
-  }, [showPlanetaryOrbits, jd]);
+  }, [showPlanetaryOrbits]);
 
   if (!showPlanetaryOrbits) return null;
 

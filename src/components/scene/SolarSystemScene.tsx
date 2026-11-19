@@ -76,8 +76,8 @@ export const SolarSystemScene: React.FC = () => {
         {/* Distance Rings & Boundaries */}
         <HeliosphereBoundaries />
 
-        {/* Planetary Orbits */}
-        <PlanetaryOrbits jd={jd} />
+        {/* Planetary Orbits (GPU-cached static Keplerian ellipses) */}
+        <PlanetaryOrbits />
 
         {/* Sun & Planets */}
         {CELESTIAL_BODIES.map(body => (

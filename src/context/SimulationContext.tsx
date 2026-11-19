@@ -187,34 +187,55 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     return interpolateTrajectory(voyager2Data, currentTimeMs);
   }, [voyager2Data, currentTimeMs]);
 
-  // Travelled path up to current time (downsampled for fast 60fps WebGL line rendering)
-  const v1TravelledPath = useMemo<[number, number, number][]>(() => {
-    if (voyager1Data.length === 0 || !v1Current) return [];
-    const pts: [number, number, number][] = [];
-    const step = Math.max(1, Math.floor(voyager1Data.length / 1000));
+  // Pre-sampled static trajectory coordinate tuples (allocated ONCE upon dataset load)
+  const v1SampledTuples = useMemo(() => {
+    if (voyager1Data.length === 0) return [];
+    const step = Math.max(1, Math.floor(voyager1Data.length / 800));
+    const list: { t: number; pos: [number, number, number] }[] = [];
     for (let i = 0; i < voyager1Data.length; i += step) {
       const pt = voyager1Data[i];
-      if (pt.t > currentTimeMs) break;
-      pts.push([pt.x, pt.y, pt.z]);
+      list.push({ t: pt.t, pos: [pt.x, pt.y, pt.z] });
     }
-    // Always include current exact head position
-    pts.push([v1Current.x, v1Current.y, v1Current.z]);
-    return pts;
-  }, [voyager1Data, v1Current, currentTimeMs]);
+    return list;
+  }, [voyager1Data]);
 
-  const v2TravelledPath = useMemo<[number, number, number][]>(() => {
-    if (voyager2Data.length === 0 || !v2Current) return [];
-    const pts: [number, number, number][] = [];
-    const step = Math.max(1, Math.floor(voyager2Data.length / 1000));
+  const v2SampledTuples = useMemo(() => {
+    if (voyager2Data.length === 0) return [];
+    const step = Math.max(1, Math.floor(voyager2Data.length / 800));
+    const list: { t: number; pos: [number, number, number] }[] = [];
     for (let i = 0; i < voyager2Data.length; i += step) {
       const pt = voyager2Data[i];
-      if (pt.t > currentTimeMs) break;
-      pts.push([pt.x, pt.y, pt.z]);
+      list.push({ t: pt.t, pos: [pt.x, pt.y, pt.z] });
     }
-    // Always include current exact head position
+    return list;
+  }, [voyager2Data]);
+
+  // Fast slice & append: reuses pre-allocated coordinate tuples with zero new vector allocations
+  const v1TravelledPath = useMemo<[number, number, number][]>(() => {
+    if (v1SampledTuples.length === 0 || !v1Current) return [];
+    let low = 0, high = v1SampledTuples.length - 1;
+    while (low <= high) {
+      const mid = (low + high) >> 1;
+      if (v1SampledTuples[mid].t <= currentTimeMs) low = mid + 1;
+      else high = mid - 1;
+    }
+    const pts = v1SampledTuples.slice(0, low).map(item => item.pos);
+    pts.push([v1Current.x, v1Current.y, v1Current.z]);
+    return pts;
+  }, [v1SampledTuples, v1Current, currentTimeMs]);
+
+  const v2TravelledPath = useMemo<[number, number, number][]>(() => {
+    if (v2SampledTuples.length === 0 || !v2Current) return [];
+    let low = 0, high = v2SampledTuples.length - 1;
+    while (low <= high) {
+      const mid = (low + high) >> 1;
+      if (v2SampledTuples[mid].t <= currentTimeMs) low = mid + 1;
+      else high = mid - 1;
+    }
+    const pts = v2SampledTuples.slice(0, low).map(item => item.pos);
     pts.push([v2Current.x, v2Current.y, v2Current.z]);
     return pts;
-  }, [voyager2Data, v2Current, currentTimeMs]);
+  }, [v2SampledTuples, v2Current, currentTimeMs]);
 
   // Calculate closest planet to each spacecraft at current time
   const jd = useMemo(() => unixMsToJulianDate(currentTimeMs), [currentTimeMs]);
