@@ -68,7 +68,6 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
     toggleHeliosphereBoundaries,
     toggleEventMarkers,
     toggleCelestialLabels,
-    registerModal,
     isCinematicTour,
     startCinematicTour,
     stopCinematicTour
@@ -83,18 +82,6 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
   const searchRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Register all dropdowns and menus with the modal system to suppress 3D HTML labels
-  useEffect(() => {
-    registerModal('nav-layers', showLayers);
-  }, [showLayers, registerModal]);
-
-  useEffect(() => {
-    registerModal('nav-search', isSearchOpen);
-  }, [isSearchOpen, registerModal]);
-
-  useEffect(() => {
-    registerModal('nav-mobile', showMobileMenu);
-  }, [showMobileMenu, registerModal]);
 
   // Close search dropdown on outside click
   useEffect(() => {
