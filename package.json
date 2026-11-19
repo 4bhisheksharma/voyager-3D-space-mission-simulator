@@ -9,8 +9,8 @@
     "preview": "vite preview"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Abhishek Sharma",
+  "license": "MIT",
   "type": "module",
   "dependencies": {
     "@react-three/drei": "^10.7.9",
