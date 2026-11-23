@@ -10,7 +10,8 @@ import {
   Milestone,
   Activity,
   Maximize2,
-  Signal
+  Signal,
+  Sparkles
 } from 'lucide-react';
 import { useSimulation } from '../../context/SimulationContext';
 import { 
@@ -41,7 +42,8 @@ export const MissionHUD: React.FC = () => {
     setIsFollowingSpacecraft,
     events,
     jumpToEvent,
-    selectedEvent
+    selectedEvent,
+    startOneLightDaySimulation
   } = useSimulation();
 
   const isV1 = selectedSpacecraft === 'voyager1';
@@ -266,6 +268,29 @@ export const MissionHUD: React.FC = () => {
               <span className="text-white font-medium">
                 {closestPlanet.name} ({(closestPlanet.distanceKm / 1e6).toFixed(1)}M km)
               </span>
+            </div>
+          )}
+
+          {/* 1 Light Day Milestone Banner */}
+          {isV1 && (
+            <div className="p-2.5 rounded-xl bg-gradient-to-r from-amber-500/15 via-sky-500/10 to-transparent border border-amber-500/30 flex flex-col gap-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-amber-300 font-bold uppercase tracking-wider flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-amber-400" />
+                  1 Light Day Milestone
+                </span>
+                <span className="text-[9px] text-amber-400/80 font-mono">24.00h Horizon</span>
+              </div>
+              <p className="text-[10px] text-zinc-300 font-sans leading-tight">
+                Voyager 1 surpasses 1 light day (25.9B km) from Earth. Simulate the cosmic light journey from the Sun.
+              </p>
+              <button
+                onClick={startOneLightDaySimulation}
+                className="w-full py-1.5 px-2.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 text-[10px] font-semibold font-mono flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <span>Simulate 1 Light Day Flight</span>
+                <ChevronRight className="w-3 h-3 text-amber-400" />
+              </button>
             </div>
           )}
 

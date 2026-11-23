@@ -13,7 +13,8 @@ import {
   unixMsToJulianDate, 
   getPlanetPositionAU, 
   distance3D, 
-  AU_TO_KM 
+  AU_TO_KM,
+  VOYAGER1_ONE_LIGHT_DAY_MS 
 } from '../utils/astronomy';
 import { CELESTIAL_BODIES } from '../utils/celestialBodies';
 
@@ -112,6 +113,17 @@ export const CINEMATIC_TOUR_STAGES: TourStage[] = [
     description: 'Voyager 1 punches through the heliopause into true interstellar space—the first human-made artifact to leave the Sun\'s magnetic bubble, registering the roar of galactic cosmic rays.'
   },
   {
+    id: 'one-light-day',
+    title: '1 Light Day from Earth Reached',
+    subtitle: '24.00h Light Time • 25.9 Billion km (173.1 AU)',
+    dateStr: '2026-10-27T00:00:00Z',
+    timeMs: VOYAGER1_ONE_LIGHT_DAY_MS,
+    target: 'voyager1',
+    craft: 'voyager1',
+    durationSec: 18,
+    description: 'Voyager 1 officially surpasses 1 light day from Earth. Radio commands sent from NASA Deep Space Network now take 24 full hours to reach the spacecraft at the speed of light.'
+  },
+  {
     id: 'present',
     title: 'Deep Interstellar Journey into Eternity',
     subtitle: '166+ AU from Earth • Present Day',
@@ -181,6 +193,14 @@ interface SimulationContextType extends SimulationState {
   nextTourStage: () => void;
   prevTourStage: () => void;
   setTourStage: (index: number) => void;
+
+  // One Light Day Cinematic Simulation Controls
+  startOneLightDaySimulation: () => void;
+  stopOneLightDaySimulation: () => void;
+  setOneLightDayProgress: (progress: number) => void;
+  toggleOneLightDayPlay: () => void;
+  setOneLightDaySpeed: (speed: number) => void;
+  replayOneLightDaySimulation: () => void;
 }
 
 const SimulationContext = createContext<SimulationContextType | null>(null);
@@ -524,6 +544,66 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [isCinematicTour, setIsCinematicTour] = useState<boolean>(false);
   const [tourStageIndex, setTourStageIndex] = useState<number>(0);
 
+  // One Light Day Simulation State
+  const [isOneLightDaySimulation, setIsOneLightDaySimulation] = useState<boolean>(false);
+  const [oneLightDayProgress, setOneLightDayProgress] = useState<number>(0);
+  const [oneLightDaySpeed, setOneLightDaySpeed] = useState<number>(1);
+  const [isOneLightDayPlaying, setIsOneLightDayPlaying] = useState<boolean>(true);
+
+  const startOneLightDaySimulation = useCallback(() => {
+    setIsCinematicTour(false);
+    setIsPlaying(false);
+    setSelectedSpacecraft('voyager1');
+    setCurrentTimeMs(VOYAGER1_ONE_LIGHT_DAY_MS);
+    setOneLightDayProgress(0);
+    setIsOneLightDayPlaying(true);
+    setIsOneLightDaySimulation(true);
+  }, []);
+
+  const stopOneLightDaySimulation = useCallback(() => {
+    setIsOneLightDaySimulation(false);
+    setIsOneLightDayPlaying(false);
+  }, []);
+
+  const toggleOneLightDayPlay = useCallback(() => {
+    setIsOneLightDayPlaying(p => !p);
+  }, []);
+
+  const replayOneLightDaySimulation = useCallback(() => {
+    setOneLightDayProgress(0);
+    setIsOneLightDayPlaying(true);
+  }, []);
+
+  // Animation frame loop for 1-Light-Day Flight progression
+  const lastLightDayFrameRef = useRef<number>(performance.now());
+  useEffect(() => {
+    if (!isOneLightDaySimulation || !isOneLightDayPlaying) return;
+
+    let animId: number;
+    lastLightDayFrameRef.current = performance.now();
+    const BASE_DURATION_SEC = 26.0; // 26 seconds for the full 1-Light-Day flight at 1x speed
+
+    const loop = (now: number) => {
+      const deltaSec = (now - lastLightDayFrameRef.current) / 1000.0;
+      lastLightDayFrameRef.current = now;
+
+      setOneLightDayProgress(prev => {
+        const step = (deltaSec / BASE_DURATION_SEC) * oneLightDaySpeed;
+        const next = prev + step;
+        if (next >= 1.0) {
+          setIsOneLightDayPlaying(false);
+          return 1.0;
+        }
+        return next;
+      });
+
+      animId = requestAnimationFrame(loop);
+    };
+
+    animId = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(animId);
+  }, [isOneLightDaySimulation, isOneLightDayPlaying, oneLightDaySpeed]);
+
   const applyTourStage = useCallback((index: number) => {
     const stage = CINEMATIC_TOUR_STAGES[index];
     if (!stage) return;
@@ -607,6 +687,16 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     nextTourStage,
     prevTourStage,
     setTourStage,
+    isOneLightDaySimulation,
+    oneLightDayProgress,
+    oneLightDaySpeed,
+    isOneLightDayPlaying,
+    startOneLightDaySimulation,
+    stopOneLightDaySimulation,
+    setOneLightDayProgress,
+    toggleOneLightDayPlay,
+    setOneLightDaySpeed,
+    replayOneLightDaySimulation,
     v1Current,
     v2Current,
     v1TravelledPath,

@@ -5,6 +5,7 @@ import { TopNavigation } from './components/navigation/TopNavigation';
 import { PlaybackControls } from './components/controls/PlaybackControls';
 import { MissionHUD } from './components/panels/MissionHUD';
 import { CinematicTourHUD } from './components/panels/CinematicTourHUD';
+import { OneLightDayHUD } from './components/panels/OneLightDayHUD';
 import { Loader2 } from 'lucide-react';
 
 // Lazy-load heavy modals on-demand to minimize initial bundle size and accelerate page boot
@@ -16,7 +17,7 @@ const ProjectInfoModal = lazy(() =>
 );
 
 const SimulationApp: React.FC = () => {
-  const { isLoadingData, isModalOpen, registerModal, isCinematicTour } = useSimulation();
+  const { isLoadingData, isModalOpen, registerModal, isCinematicTour, isOneLightDaySimulation } = useSimulation();
   const [showGoldenRecord, setShowGoldenRecord] = useState(false);
   const [showProjectInfo, setShowProjectInfo] = useState(false);
 
@@ -45,6 +46,8 @@ const SimulationApp: React.FC = () => {
     );
   }
 
+  const isCinematicActive = isCinematicTour || isOneLightDaySimulation;
+
   return (
     <div 
       data-modal-open={isModalOpen ? 'true' : 'false'}
@@ -59,16 +62,19 @@ const SimulationApp: React.FC = () => {
         onOpenInfo={() => setShowProjectInfo(true)}
       />
 
-      {/* 3. Sleek Floating Mission HUD (hidden during Cinematic Tour for immersive view) */}
-      {!isCinematicTour && <MissionHUD />}
+      {/* 3. Sleek Floating Mission HUD (hidden during Cinematic Tour or 1-Light-Day Flight) */}
+      {!isCinematicActive && <MissionHUD />}
 
-      {/* 4. Sleek Bottom Playback Controls (hidden during Cinematic Tour) */}
-      {!isCinematicTour && <PlaybackControls />}
+      {/* 4. Sleek Bottom Playback Controls (hidden during Cinematic Tour or 1-Light-Day Flight) */}
+      {!isCinematicActive && <PlaybackControls />}
 
       {/* 5. Autopilot Cinematic Grand Tour HUD */}
       {isCinematicTour && <CinematicTourHUD />}
 
-      {/* 6. On-Demand Lazy Loaded Modals */}
+      {/* 6. One Light Day Flight Simulation HUD */}
+      {isOneLightDaySimulation && <OneLightDayHUD />}
+
+      {/* 7. On-Demand Lazy Loaded Modals */}
       <Suspense fallback={null}>
         {showGoldenRecord && (
           <GoldenRecordModal

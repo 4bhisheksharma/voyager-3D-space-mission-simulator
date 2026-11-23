@@ -12,6 +12,7 @@ import { TrajectoryPath } from '../trajectory/TrajectoryPath';
 import { HeliosphereBoundaries } from './HeliosphereBoundaries';
 import { CameraController } from './CameraController';
 import { CosmicStarfield } from './CosmicStarfield';
+import { OneLightDayBeam } from './OneLightDayBeam';
 
 export const SolarSystemScene: React.FC = () => {
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
@@ -83,6 +84,9 @@ export const SolarSystemScene: React.FC = () => {
         {CELESTIAL_BODIES.map(body => (
           <PlanetMesh key={body.id} body={body} jd={jd} />
         ))}
+
+        {/* 1 Light Day Flight Simulation Photon Beam */}
+        <OneLightDayBeam />
 
         {/* Voyager Trajectories */}
         <TrajectoryPath

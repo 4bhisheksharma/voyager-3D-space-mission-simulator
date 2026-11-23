@@ -3,7 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { useSimulation } from '../../context/SimulationContext';
-import { getPlanetPositionAU, getSafeSpacecraftPosition } from '../../utils/astronomy';
+import { getPlanetPositionAU, getSafeSpacecraftPosition, getOneLightDayFlightState } from '../../utils/astronomy';
 
 interface CameraControllerProps {
   controlsRef: React.RefObject<OrbitControlsImpl | null>;
@@ -29,7 +29,9 @@ export const CameraController: React.FC<CameraControllerProps> = ({ controlsRef,
     v1Current, 
     v2Current,
     currentTimeMs,
-    isCinematicTour 
+    isCinematicTour,
+    isOneLightDaySimulation,
+    oneLightDayProgress 
   } = useSimulation();
 
   const desiredCamPos = useRef(new THREE.Vector3(0, 35, 55));
@@ -73,6 +75,67 @@ export const CameraController: React.FC<CameraControllerProps> = ({ controlsRef,
     // 1. FREE CAMERA MODE: Total freedom to pan, orbit, and zoom anywhere in space
     if (cameraTarget === 'free') {
       isIntroActive.current = false;
+      controlsRef.current.update();
+      return;
+    }
+
+    // 1.5 ONE LIGHT DAY CINEMATIC SIMULATION FLIGHT:
+    // Glides smoothly from the Sun [0,0,0] all the way out across the Solar System to Voyager 1 at 173.14 AU
+    if (isOneLightDaySimulation) {
+      isIntroActive.current = false;
+      cinematicOrbitAngle.current += delta * 0.12;
+
+      // Target position of Voyager 1
+      const v1Pos = v1Current 
+        ? [v1Current.x, v1Current.y, v1Current.z]
+        : [-137.386967, 99.292922, -32.233514];
+      const targetVec = new THREE.Vector3(v1Pos[0], v1Pos[1], v1Pos[2]);
+      const dirU = targetVec.clone().normalize();
+
+      // Perpendicular vectors for dynamic camera banking & framing
+      const upWorld = new THREE.Vector3(0, 1, 0);
+      const sideW = new THREE.Vector3().crossVectors(dirU, upWorld).normalize();
+      const upPerp = new THREE.Vector3().crossVectors(sideW, dirU).normalize();
+
+      const { distAU } = getOneLightDayFlightState(oneLightDayProgress);
+      const flightPos = dirU.clone().multiplyScalar(distAU);
+
+      // Camera dynamic offset based on cosmic scale:
+      // Tight offset near the Sun to observe solar corona; wider offset in outer planets to observe the celestial scale
+      const camOffset = Math.max(0.12, Math.min(16.0, 0.14 + Math.pow(distAU, 0.55) * 0.32));
+
+      const flightCamPos = flightPos.clone()
+        .addScaledVector(sideW, camOffset * 0.6)
+        .addScaledVector(upPerp, camOffset * 0.35)
+        .addScaledVector(dirU, -camOffset * 0.4);
+
+      const flightLookTarget = flightPos.clone().addScaledVector(dirU, Math.max(0.5, camOffset * 1.4));
+
+      // Arrival blend (at progress >= 0.94, ease into orbital inspection around Voyager 1)
+      if (oneLightDayProgress >= 0.94) {
+        const t = (oneLightDayProgress - 0.94) / 0.06;
+        const ease = t * t * (3 - 2 * t);
+
+        const orbRadius = 0.12;
+        const angle = cinematicOrbitAngle.current + t * 3.0;
+        const orbCamPos = targetVec.clone().add(new THREE.Vector3(
+          Math.sin(angle) * orbRadius,
+          Math.sin(angle * 0.4) * 0.03 + 0.03,
+          Math.cos(angle) * orbRadius
+        ));
+
+        desiredCamPos.current.lerpVectors(flightCamPos, orbCamPos, ease);
+        desiredTarget.current.lerpVectors(flightLookTarget, targetVec, ease);
+      } else {
+        desiredCamPos.current.copy(flightCamPos);
+        desiredTarget.current.copy(flightLookTarget);
+      }
+
+      if (!isUserInteracting.current) {
+        const lerpFactor = 1.0 - Math.exp(-5.5 * delta);
+        camera.position.lerp(desiredCamPos.current, lerpFactor);
+        controlsRef.current.target.lerp(desiredTarget.current, lerpFactor);
+      }
       controlsRef.current.update();
       return;
     }

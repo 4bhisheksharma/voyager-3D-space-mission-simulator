@@ -42,7 +42,8 @@ const SEARCH_ITEMS: SearchItem[] = [
   { id: 'voyager2', name: 'Voyager 2', type: 'PROBE', targetId: 'voyager2', details: 'Grand Tour Explorer of 4 Outer Planets' },
   { id: 'overview', name: 'Solar System Overview', type: 'SYSTEM', targetId: 'overview', details: 'Complete Heliosphere Macro View' },
   { id: 'inner', name: 'Inner Planets', type: 'SYSTEM', targetId: 'inner_solar_system', details: 'Sun, Mercury, Venus, Earth, Mars' },
-  { id: 'record', name: 'The Golden Record', type: 'ARTIFACT', targetId: 'golden_record', details: 'Sounds and Images of Earth for Eternity' }
+  { id: 'record', name: 'The Golden Record', type: 'ARTIFACT', targetId: 'golden_record', details: 'Sounds and Images of Earth for Eternity' },
+  { id: 'one_light_day', name: '1 Light Day Horizon', type: 'ARTIFACT', targetId: 'one_light_day' as any, details: '24.00h Comm Horizon • 25.9B km (173.1 AU)' }
 ];
 
 export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord, onOpenInfo }) => {
@@ -70,7 +71,10 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
     toggleCelestialLabels,
     isCinematicTour,
     startCinematicTour,
-    stopCinematicTour
+    stopCinematicTour,
+    isOneLightDaySimulation,
+    startOneLightDaySimulation,
+    stopOneLightDaySimulation
   } = useSimulation();
 
   const [showLayers, setShowLayers] = useState(false);
@@ -116,8 +120,10 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
   const handleSelectItem = (item: SearchItem) => {
     if (item.targetId === 'golden_record') {
       onOpenGoldenRecord();
+    } else if (item.id === 'one_light_day') {
+      startOneLightDaySimulation();
     } else {
-      handleSelectTarget(item.targetId);
+      handleSelectTarget(item.targetId as CameraFocusTarget);
     }
     setSearchQuery('');
     setIsSearchOpen(false);
@@ -399,6 +405,21 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
           )}
         </div>
 
+        {/* 1 Light Day Flight Simulation */}
+        <button
+          onClick={isOneLightDaySimulation ? stopOneLightDaySimulation : startOneLightDaySimulation}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono transition-all cursor-pointer border ${
+            isOneLightDaySimulation
+              ? 'bg-amber-500/25 border-amber-400 text-amber-200 shadow-[0_0_15px_rgba(245,158,11,0.35)] animate-pulse'
+              : 'bg-gradient-to-r from-amber-500/15 via-sky-500/15 to-purple-500/15 hover:from-amber-500/25 hover:to-purple-500/25 border-amber-400/40 text-amber-300 hover:text-white shadow-sm'
+          }`}
+          title="Simulate cinematic camera flight from the Sun to Voyager 1 at 1 Light Day (24.00h light travel time, 25.9B km)"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+          <span className="hidden sm:inline font-semibold">1 Light Day</span>
+          <span className="sm:hidden font-semibold">1LD</span>
+        </button>
+
         {/* Cinematic Grand Tour */}
         <button
           onClick={isCinematicTour ? stopCinematicTour : startCinematicTour}
@@ -523,6 +544,20 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onOpenGoldenRecord
               >
                 <Sparkles className="w-3.5 h-3.5 text-sky-400" />
                 <span>{isCinematicTour ? 'Exit Cinematic Tour' : 'Autopilot Grand Tour'}</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowMobileMenu(false);
+                  if (isOneLightDaySimulation) stopOneLightDaySimulation();
+                  else startOneLightDaySimulation();
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-colors text-xs w-full mt-1 justify-center cursor-pointer ${
+                  isOneLightDaySimulation ? 'bg-amber-500/30 text-amber-200 border border-amber-400/60 font-semibold' : 'bg-amber-500/10 text-amber-300 border border-amber-500/20'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span>{isOneLightDaySimulation ? 'Exit 1 Light Day Flight' : '1 Light Day Flight Simulation'}</span>
               </button>
             </>
           )}

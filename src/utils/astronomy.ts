@@ -3,6 +3,12 @@ import { TrajectoryPoint } from '../types/simulation';
 export const AU_TO_KM = 149597870.7;
 export const SPEED_OF_LIGHT_KMS = 299792.458;
 
+// 1 Light Day in metric and astronomical units
+// Speed of light * 86,400 seconds = 25,902,068,371.2 km (~173.1446 AU)
+export const ONE_LIGHT_DAY_KM = 86400 * SPEED_OF_LIGHT_KMS;
+export const ONE_LIGHT_DAY_AU = ONE_LIGHT_DAY_KM / AU_TO_KM;
+export const VOYAGER1_ONE_LIGHT_DAY_MS = Date.UTC(2026, 9, 27, 0, 0, 0); // 2026-10-27T00:00:00Z (Crossing 1 light day from Earth)
+
 // Verified NASA historical launch timestamps
 export const VOYAGER1_LAUNCH_MS = Date.UTC(1977, 8, 5, 12, 56, 0); // 1977-09-05T12:56:00Z (Cape Canaveral SLC-41)
 export const VOYAGER2_LAUNCH_MS = Date.UTC(1977, 7, 20, 14, 29, 0); // 1977-08-20T14:29:00Z (Cape Canaveral SLC-41)
@@ -304,6 +310,149 @@ export function getSafeSpacecraftPosition(
   return {
     position: [rawPt.x, rawPt.y, rawPt.z],
     isPreLaunch: false
+  };
+}
+
+export interface OneLightDayStageInfo {
+  progressThreshold: number;
+  distAU: number;
+  lightHours: number;
+  sector: string;
+  subtitle: string;
+  description: string;
+}
+
+export const ONE_LIGHT_DAY_STAGES: OneLightDayStageInfo[] = [
+  {
+    progressThreshold: 0.0,
+    distAU: 0.15,
+    lightHours: 0.02,
+    sector: 'Solar Corona & The Sun',
+    subtitle: 'Central Star (Sol) • Departure Origin (0.0 AU)',
+    description: 'The journey begins at our home star. Nuclear fusion in the solar core radiates photons that will take 24 full hours to reach Voyager 1.'
+  },
+  {
+    progressThreshold: 0.12,
+    distAU: 1.00,
+    lightHours: 0.138, // 8.3 minutes
+    sector: 'Earth & Inner Solar System',
+    subtitle: 'Earth Orbital Crossing • 8.3 Light Minutes (1.00 AU)',
+    description: 'Passing the orbit of Earth. Radio signals transmitted from NASA Deep Space Network begin their 25.9-billion-kilometer race across the cosmos.'
+  },
+  {
+    progressThreshold: 0.22,
+    distAU: 2.70,
+    lightHours: 0.375, // 22.5 minutes
+    sector: 'The Asteroid Belt',
+    subtitle: 'Main Belt Realm • 22.5 Light Minutes (2.70 AU)',
+    description: 'Crossing between Mars and Jupiter through the field of rocky remnants left behind from the birth of the solar system 4.6 billion years ago.'
+  },
+  {
+    progressThreshold: 0.35,
+    distAU: 5.20,
+    lightHours: 0.722, // 43.3 minutes
+    sector: 'Jovian System (Jupiter)',
+    subtitle: 'King of Planets • 43.3 Light Minutes (5.20 AU)',
+    description: 'Passing Jupiter\'s orbit, where Voyager 1 used a powerful gravity assist in March 1979 to fling itself toward Saturn and discover volcanic activity on Io.'
+  },
+  {
+    progressThreshold: 0.48,
+    distAU: 9.54,
+    lightHours: 1.325, // 1 hr 19 min
+    sector: 'Cronian System (Saturn)',
+    subtitle: 'Ringed Wonder • 1.32 Light Hours (9.54 AU)',
+    description: 'Where Voyager 1 skimmed past moon Titan in November 1980 and slingshot northward 35 degrees out of the ecliptic plane into deep space.'
+  },
+  {
+    progressThreshold: 0.60,
+    distAU: 19.2,
+    lightHours: 2.66,
+    sector: 'Uranus Orbital Sphere',
+    subtitle: 'Outer Gas Margin • 2.66 Light Hours (19.2 AU)',
+    description: 'Climbing far above the planetary disc into the quiet outer reaches of the Sun\'s gravitational domain.'
+  },
+  {
+    progressThreshold: 0.70,
+    distAU: 30.1,
+    lightHours: 4.18,
+    sector: 'Neptune & Kuiper Belt Margin',
+    subtitle: 'The Outermost Planet • 4.18 Light Hours (30.1 AU)',
+    description: 'Passing the orbital distance of Neptune. The sunlight here is 900 times dimmer than on Earth as we enter the realm of icy dwarf planets.'
+  },
+  {
+    progressThreshold: 0.82,
+    distAU: 94.0,
+    lightHours: 13.05,
+    sector: 'The Termination Shock',
+    subtitle: 'Solar Wind Boundary • 13.05 Light Hours (94.0 AU)',
+    description: 'Voyager 1 crossed here on December 16, 2004, where the supersonic solar wind abruptly slammed into interstellar gas and slowed down to subsonic speeds.'
+  },
+  {
+    progressThreshold: 0.90,
+    distAU: 121.6,
+    lightHours: 16.88,
+    sector: 'The Heliopause',
+    subtitle: 'Interstellar Threshold • 16.88 Light Hours (121.6 AU)',
+    description: 'On August 25, 2012, Voyager 1 became the first human craft to enter interstellar space, leaving behind the magnetic bubble of the Sun.'
+  },
+  {
+    progressThreshold: 0.98,
+    distAU: 172.68,
+    lightHours: 24.00,
+    sector: '1 Light Day Horizon (24.00h)',
+    subtitle: 'Interstellar Voyager 1 • 24 Light Hours (173.14 AU from Earth)',
+    description: 'Voyager 1 reaches 1 light day from Earth. Light or radio waves traveling at 300,000 km/s take a full 24 hours to reach the spacecraft across 25.9 billion kilometers.'
+  }
+];
+
+export function getOneLightDayFlightState(progress: number) {
+  const p = Math.max(0, Math.min(1, progress));
+  
+  // Piecewise smooth interpolation across progress milestones
+  let distAU = 0.15;
+  for (let i = 0; i < ONE_LIGHT_DAY_STAGES.length - 1; i++) {
+    const s0 = ONE_LIGHT_DAY_STAGES[i];
+    const s1 = ONE_LIGHT_DAY_STAGES[i + 1];
+    if (p >= s0.progressThreshold && p <= s1.progressThreshold) {
+      const span = s1.progressThreshold - s0.progressThreshold;
+      const t = span > 0 ? (p - s0.progressThreshold) / span : 0;
+      // Smooth Hermite easing for silky speed curves
+      const ease = t * t * (3 - 2 * t);
+      distAU = s0.distAU + ease * (s1.distAU - s0.distAU);
+      break;
+    }
+  }
+  if (p >= ONE_LIGHT_DAY_STAGES[ONE_LIGHT_DAY_STAGES.length - 1].progressThreshold) {
+    distAU = ONE_LIGHT_DAY_STAGES[ONE_LIGHT_DAY_STAGES.length - 1].distAU;
+  }
+
+  // Active sector info
+  let activeStage = ONE_LIGHT_DAY_STAGES[0];
+  for (let i = ONE_LIGHT_DAY_STAGES.length - 1; i >= 0; i--) {
+    if (p >= ONE_LIGHT_DAY_STAGES[i].progressThreshold - 0.005) {
+      activeStage = ONE_LIGHT_DAY_STAGES[i];
+      break;
+    }
+  }
+
+  const distKm = distAU * AU_TO_KM;
+  const lightSeconds = distKm / SPEED_OF_LIGHT_KMS;
+  const lightHours = lightSeconds / 3600;
+
+  // Format light travel time
+  const hrs = Math.floor(lightSeconds / 3600);
+  const mins = Math.floor((lightSeconds % 3600) / 60);
+  const secs = Math.floor(lightSeconds % 60);
+
+  const formattedLightTime = `${hrs.toString().padStart(2, '0')}h ${mins.toString().padStart(2, '0')}m ${secs.toString().padStart(2, '0')}s`;
+
+  return {
+    distAU,
+    distKm,
+    lightSeconds,
+    lightHours,
+    formattedLightTime,
+    stage: activeStage
   };
 }
 

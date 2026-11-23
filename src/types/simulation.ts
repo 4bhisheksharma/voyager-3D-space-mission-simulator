@@ -104,4 +104,10 @@ export interface SimulationState {
   // Cinematic Tour Mode
   isCinematicTour: boolean;
   tourStageIndex: number;
+
+  // One Light Day Cinematic Simulation Mode
+  isOneLightDaySimulation: boolean;
+  oneLightDayProgress: number; // 0 to 1
+  oneLightDaySpeed: number;    // Multiplier (0.5, 1, 2)
+  isOneLightDayPlaying: boolean;
 }

@@ -85,6 +85,16 @@
     "distanceAU": 121.6
   },
   {
+    "id": "v1-one-light-day",
+    "spacecraft": "voyager1",
+    "date": "2026-10-27T00:00:00Z",
+    "title": "1 Light Day from Earth Reached",
+    "short": "1 Light Day Comm Horizon",
+    "category": "milestone",
+    "description": "Voyager 1 surpasses 173.14 AU (25.90 billion km) from Earth—marking exactly 1 Light Day of one-way communication travel time. A radio command sent from NASA Deep Space Network now takes 24 full hours to arrive at the speed of light.",
+    "distanceAU": 173.14
+  },
+  {
     "id": "v1-present",
     "spacecraft": "voyager1",
     "date": "2026-11-18T00:00:00Z",
